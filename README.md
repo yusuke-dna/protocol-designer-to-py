@@ -15,6 +15,6 @@ $ python3 pdjson2py.py file/path/to/protocol/designer/json/file auto
 ```
 # Limitations
 * Most of detail parameter is not supported, and to be supported.
-* Only latest API version is and will be supported, but not restricted.
-* Transfer in JSON file is a combination of aspriate and dispense. The generated python file keep the structure. Same to step/cycles in thermocycler profile.
+* Only API version 2.13 is and will be supported, but not restricted.
+* Transfer in Commands object of JSON file is expressed as a combination of aspriate and dispense. The generated python file keeps the structure. Same to single cycle long profile in thermocycler.
 * Bug reports are welcome to improve the script.

@@ -2,7 +2,7 @@ import json, datetime, argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('arg1', type=str, help='The JSON file exported from Protocol Designer.')
-parser.add_argument('arg2', type=str, nargs='?', default=None, help='Specify "auto" for automatic tiprack assignment. None or unspecified makes ..')
+parser.add_argument('arg2', type=str, nargs='?', default=None, help='Specify "auto" for automatic tiprack assignment. For used tiprack reuse, input "C1" (if single pipette is installed) or "A1/E10" ([for left pipette]/[for right pipette], no blank allowed if both installed) to specify starting (filled) well of the used tiprack. Input "None" to keep Protocol Designer tip assignment.')
 parser.add_argument('arg3', type=str, nargs='?', default=None, help='Slack Webhook URL here like "https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]" for notification via Slack.')
 args = parser.parse_args()
 
@@ -10,6 +10,21 @@ def bottom2top(json_dict: dict, labware_name_full: str, well_name: str, v_mm:flo
     # indeed, top2bottom too.
     well_depth = json_dict['labwareDefinitions'][labware_name_full]['wells'][well_name]['depth']
     return v_mm - well_depth
+
+def used_tiprack_parse(tiprack_assign=None) -> list:        
+    starting_tip_well = tiprack_assign.split('/')
+    for i in range(len(starting_tip_well)):
+        well_name = starting_tip_well[i].upper()
+        alphabetic_part = ''.join(filter(str.isalpha, well_name))
+        numeric_part = ''.join(filter(str.isdigit, well_name))
+        numeric_part = str(int(numeric_part))
+        if alphabetic_part == '':
+            row = (int(numeric_part) - 1) % 8
+            col = (int(numeric_part) - 1) // 8 + 1
+            alphabetic_part = chr(row + ord('A'))
+            numeric_part = str(col)
+        starting_tip_well[i] = alphabetic_part + numeric_part 
+    return starting_tip_well
 
 def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
     # to parse pipettes, labwares and modules from JSON file to variables
@@ -54,6 +69,13 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
     for key, value in pdjson['modules'].items():
         modules_name[key] = module_dict[str(value['model'])]
         modules[key] = ""
+
+    # Specifying starting well of the used tiprack.
+    if tiprack_assign == None or tiprack_assign == 'auto':
+        used_tiprack = False
+    else:
+        used_tiprack = True
+        starting_tip_well = used_tiprack_parse(tiprack_assign)
         
     with open('output.py', 'w') as f:
 # header
@@ -85,18 +107,20 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
         for i in range(len(pdjson['commands'])):
             command_step = pdjson['commands'][i]
             if command_step['commandType'] == 'loadPipette':
-                if tiprack_assign == 'auto':
+                if tiprack_assign == 'auto' or used_tiprack == True:
                     tiprack_name = pdjson['designerApplication']['data']['pipetteTiprackAssignments'][command_step['params']['pipetteId']]
                     tipracks = []
                     for key, value in pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['labwareLocationUpdate'].items() :
                         if key.split(':')[len(key.split(':'))-1] == tiprack_name :
                             tipracks.append(labwares[key])
                             tipracks_str = '[' + ']['.join(tipracks) + ']'
+                    ini_tiprack = tipracks[0]
                     f.write(f"  pipette{i} = protocol.load_instrument(instrument_name='{pipettes_name[command_step['params']['pipetteId']]}', mount='{command_step['params']['mount']}',tip_racks={tipracks_str})\n")
-                    pipettes[command_step['params']['pipetteId']] = f"pipette{i}"
+                    if used_tiprack == True:
+                        f.write(f"  pipette{i}.starting_tip = {ini_tiprack}.well('{starting_tip_well[i]}')\n")
                 else:
                     f.write(f"  pipette{i} = protocol.load_instrument(instrument_name='{pipettes_name[command_step['params']['pipetteId']]}', mount='{command_step['params']['mount']}')\n")
-                    pipettes[command_step['params']['pipetteId']] = f"pipette{i}"
+                pipettes[command_step['params']['pipetteId']] = f"pipette{i}"
 
 # Commands
         for i in range(len(pdjson['commands'])):
@@ -106,7 +130,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
                 f.write(f'# command no. {i}\n')
                 
 # liquid handling
-            if command_step['commandType'] == 'pickUpTip' and tiprack_assign == 'auto':
+            if command_step['commandType'] == 'pickUpTip' and (tiprack_assign == 'auto' or used_tiprack == True):
                 f.write(f"  {pipettes[command_step['params']['pipetteId']]}.pick_up_tip()\n")
             elif command_step['commandType'] == 'pickUpTip':
                 f.write(f"  {pipettes[command_step['params']['pipetteId']]}"

@@ -13,7 +13,7 @@ $ python3 pdjson2py.py file/path/to/protocol/designer/json/file
 ```
 $ python3 pdjson2py.py file/path/to/protocol/designer/json/file auto
 ```
-7. Slack notification is available when you add Slack webhook URL as the third argument. In that case, the second augument should be either auto or None (or any string apart from "auto").
+7. A Slack notification feature is available when you include the Slack webhook URL as the third argument. In this case, the second argument should be either 'auto', 'None', or any string other than 'auto'.
 ```
 $ python3 pdjson2py.py file/path/to/protocol/designer/json/file None https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]
 ```

@@ -13,8 +13,14 @@ $ python3 pdjson2py.py file/path/to/protocol/designer/json/file
 ```
 $ python3 pdjson2py.py file/path/to/protocol/designer/json/file auto
 ```
+7. Slack notification is available when you add Slack webhook URL as the third argument. In that case, the second augument should be either auto or None (or any string apart from "auto").
+```
+$ python3 pdjson2py.py file/path/to/protocol/designer/json/file None https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]
+```
+
 # Limitations
 * Not all of parameters are supported, but to be supported in future.
 * Only API version 2.13 is and will be supported, but not restricted. (liquid status is not supported)
 * Transfer in Commands object of JSON file is expressed as a combination of aspriate and dispense. The generated python file keeps the structure. Same to single cycle long profile in thermocycler.
+* Note that all Slack notification in the protocol will be sent immediately upon importing the protocol file into the Opentrons app. This is because the app validates (simulates) the protocol once before the setup process begins.
 * Bug reports are welcome to improve the script.

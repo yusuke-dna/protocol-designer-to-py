@@ -15,7 +15,7 @@ $ python3 pdjson2py.py /path/to/protocol/designer/json/file auto
 ```
 7.	Alternatively, you can specify a used tiprack by indicating the starting well associated with either the left or right pipette.
 ```
-# For two pipettes, specify the wells in the format [left pipette]/[right pipette]. No spaces are allowed. Use 'A1' if the left pipette requires a new tiprack.
+# For two pipettes, specify the wells in the format [left pipette]/[right pipette]. No blanks are allowed. Use 'A1' if the left pipette uses a new tiprack.
 $ python3 pdjson2py.py /path/to/protocol/designer/json/file A1/C3
 
 # For single pipette usage (left/right unspecified), specify the well as follows:

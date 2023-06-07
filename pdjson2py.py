@@ -3,6 +3,7 @@ import json, datetime, argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('arg1', type=str, help='The JSON file exported from Protocol Designer.')
 parser.add_argument('arg2', type=str, nargs='?', default=None, help='Specify "auto" for automatic tiprack assignment. None or unspecified makes ..')
+parser.add_argument('arg3', type=str, nargs='?', default=None, help='Slack Webhook URL here like "https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]" for notification via Slack.')
 args = parser.parse_args()
 
 def bottom2top(json_dict: dict, labware_name_full: str, well_name: str, v_mm:float) -> float:
@@ -10,7 +11,7 @@ def bottom2top(json_dict: dict, labware_name_full: str, well_name: str, v_mm:flo
     well_depth = json_dict['labwareDefinitions'][labware_name_full]['wells'][well_name]['depth']
     return v_mm - well_depth
 
-def otjson2py(filename: str, tiprack_assign=None) -> str:
+def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
     # to parse pipettes, labwares and modules from JSON file to variables
     try:
         with open(filename, 'r') as f:
@@ -58,6 +59,9 @@ def otjson2py(filename: str, tiprack_assign=None) -> str:
 # header
         f.write('from opentrons import protocol_api\n\n')
         f.write(f'metadata = {metadata}\n\n')
+        if webhook_url != None:
+            f.write(f'webhook_url = "{webhook_url}"\n\n')
+            f.write("import json\nimport urllib.request\n\ndef send_to_slack(webhook_url, message):\n    data = {\n        'text': message,\n        'username': 'MyBot',\n        'icon_emoji': ':robot_face:'\n    }\n    data = json.dumps(data).encode('utf-8')\n\n    headers = {'Content-Type': 'application/json'}\n\n    req = urllib.request.Request(webhook_url, data, headers)\n    with urllib.request.urlopen(req) as res:\n        if res.getcode() != 200:\n            raise ValueError(\n                'Request to slack returned an error %s, the response is:\\n%s'\n                % (res.getcode(), res.read().decode('utf-8'))\n            )\n\n")
         f.write('def run(protocol: protocol_api.ProtocolContext):\n')
         
 # load labwares and modules
@@ -202,6 +206,8 @@ def otjson2py(filename: str, tiprack_assign=None) -> str:
 # other control      
             elif command_step['commandType'] == 'delay' and command_step['params'].get('seconds') == None :
                 message = str(command_step['params'].get('message'))
+                if webhook_url != None:
+                    f.write(f'  send_to_slack(webhook_url,"Your OT-2 has said: {message}")\n')
                 f.write('  protocol.pause(msg="' + message + '")\n')
             elif command_step['commandType'] == 'delay' :
                 message = str(command_step['params'].get('message'))
@@ -210,6 +216,9 @@ def otjson2py(filename: str, tiprack_assign=None) -> str:
                 # loading liquid, begins from API 2.14 is not supported.
                 None
             else:
-                f.write(f"not persed: {command_step['commandType']}, {i}\n")    
+                f.write(f"not persed: {command_step['commandType']}, {i}\n")
+                
+        if webhook_url != None:
+            f.write(f'  send_to_slack(webhook_url,"Your OT-2 protocol has just completed!")\n')
     
-otjson2py(args.arg1,tiprack_assign=args.arg2)
+otjson2py(args.arg1,tiprack_assign=args.arg2,webhook_url=args.arg3)

@@ -13,7 +13,15 @@ $ python3 pdjson2py.py file/path/to/protocol/designer/json/file
 ```
 $ python3 pdjson2py.py file/path/to/protocol/designer/json/file auto
 ```
-7. A Slack notification feature is available when you include the Slack webhook URL as the third argument. In this case, the second argument should be either 'auto', 'None', or any string other than 'auto'.
+7. Or you can use used tiprack by specifying the starting well of tiprack associated to left/right pipette.
+```
+# For two pipettes, specify the well in the order of [left pipette]/[right pipette] (no blank allowed and specify A1 if left pipette uses a new tiprack)
+$ python3 pdjson2py.py file/path/to/protocol/designer/json/file A1/C3
+
+# For single pipettes (no left/right specification)
+$ python3 pdjson2py.py file/path/to/protocol/designer/json/file A1/C3
+```
+8. A Slack notification feature is available when you include the Slack webhook URL as the third argument. In this case, the second argument should be either 'auto', 'None', or any string other than 'auto'.
 ```
 $ python3 pdjson2py.py file/path/to/protocol/designer/json/file None https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]
 ```

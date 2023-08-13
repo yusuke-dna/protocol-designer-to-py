@@ -1,4 +1,11 @@
-import json, datetime, argparse
+try:
+    import json, datetime, argparse
+except ImportError as e:
+    missing_module = str(e).split(" ")[-1].replace("'", "")
+    print(f"It appears that the module {missing_module} is not installed.")
+    print("Please run the following command to install the required dependencies:")
+    print(f"pip install {missing_module}")
+    exit()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('arg1', type=str, help='The JSON file exported from Protocol Designer.')

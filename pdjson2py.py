@@ -93,10 +93,14 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
             f.write("import json\nimport urllib.request\n\ndef send_to_slack(webhook_url, message):\n    data = {\n        'text': message,\n        'username': 'MyBot',\n        'icon_emoji': ':robot_face:'\n    }\n    data = json.dumps(data).encode('utf-8')\n\n    headers = {'Content-Type': 'application/json'}\n\n    req = urllib.request.Request(webhook_url, data, headers)\n    with urllib.request.urlopen(req) as res:\n        if res.getcode() != 200:\n            raise ValueError(\n                'Request to slack returned an error %s, the response is:\\n%s'\n                % (res.getcode(), res.read().decode('utf-8'))\n            )\n\n")
         f.write('def run(protocol: protocol_api.ProtocolContext):\n')
         
-# load labwares and modules
+# load modules and labware
         for i in range(len(pdjson['commands'])):
             command_step = pdjson['commands'][i]
-            if command_step['commandType'] == 'loadLabware':
+            if command_step['commandType'] == 'loadModule':
+                f.write(f"  module{i} = protocol.load_module(module_name='{modules_name[command_step['params']['moduleId']]}',"
+                        f"location='{command_step['params']['location']['slotName']}')\n")
+                modules[command_step['params']['moduleId']] = f"module{i}"
+            elif command_step['commandType'] == 'loadLabware':
                 if list(command_step['params']['location'].keys())[0] == 'slotName':
                     f.write(f"  labware{i} = protocol.load_labware(load_name='{labwares_name[command_step['params']['labwareId']]}', "
                             f"location='{command_step['params']['location']['slotName']}')\n")
@@ -105,10 +109,6 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
                     f.write(f"  labware{i} = {modules[command_step['params']['location']['moduleId']]}"
                             f".load_labware('{labwares_name[command_step['params']['labwareId']]}')\n")
                     labwares[command_step['params']['labwareId']] = f"labware{i}"
-            elif command_step['commandType'] == 'loadModule':
-                f.write(f"  module{i} = protocol.load_module(module_name='{modules_name[command_step['params']['moduleId']]}',"
-                        f"location='{command_step['params']['location']['slotName']}')\n")
-                modules[command_step['params']['moduleId']] = f"module{i}"
                 
 # load pipettes
         for i in range(len(pdjson['commands'])):

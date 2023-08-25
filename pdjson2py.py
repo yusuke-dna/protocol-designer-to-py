@@ -18,10 +18,15 @@ def bottom2top(json_dict: dict, labware_name_full: str, well_name: str, v_mm:flo
     well_depth = json_dict['labwareDefinitions'][labware_name_full]['wells'][well_name]['depth']
     return v_mm - well_depth
 
-def used_tiprack_parse(tiprack_assign=None) -> list:        
-    starting_tip_well = tiprack_assign.split('/')
-    for i in range(len(starting_tip_well)):
-        well_name = starting_tip_well[i].upper()
+def used_tiprack_parse(tiprack_assign=None) -> dict:        
+    starting_tip_well = {}
+    starting_tip_well['left'] = tiprack_assign.split('/')[0]
+    if len(tiprack_assign.split('/')) == 1:
+        starting_tip_well['right'] = tiprack_assign.split('/')[0]
+    else:  
+        starting_tip_well['right'] = tiprack_assign.split('/')[1]
+    for key in starting_tip_well.keys():
+        well_name = starting_tip_well[key].upper()
         alphabetic_part = ''.join(filter(str.isalpha, well_name))
         numeric_part = ''.join(filter(str.isdigit, well_name))
         numeric_part = str(int(numeric_part))
@@ -30,7 +35,7 @@ def used_tiprack_parse(tiprack_assign=None) -> list:
             col = (int(numeric_part) - 1) // 8 + 1
             alphabetic_part = chr(row + ord('A'))
             numeric_part = str(col)
-        starting_tip_well[i] = alphabetic_part + numeric_part 
+        starting_tip_well[key] = alphabetic_part + numeric_part 
     return starting_tip_well
 
 def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
@@ -47,7 +52,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
         if value is None:
             metadata[key] = "n/a"
     metadata['tags'] = str(metadata['tags'])
-    metadata['apiLevel'] = '2.13'
+    metadata['apiLevel'] = '2.15'
     module_dict = {
         'temperatureModuleV2':'temperature module gen2',
         'magneticModuleV2':'magnetic module gen2',
@@ -93,42 +98,45 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
             f.write("import json\nimport urllib.request\n\ndef send_to_slack(webhook_url, message):\n    data = {\n        'text': message,\n        'username': 'MyBot',\n        'icon_emoji': ':robot_face:'\n    }\n    data = json.dumps(data).encode('utf-8')\n\n    headers = {'Content-Type': 'application/json'}\n\n    req = urllib.request.Request(webhook_url, data, headers)\n    with urllib.request.urlopen(req) as res:\n        if res.getcode() != 200:\n            raise ValueError(\n                'Request to slack returned an error %s, the response is:\\n%s'\n                % (res.getcode(), res.read().decode('utf-8'))\n            )\n\n")
         f.write('def run(protocol: protocol_api.ProtocolContext):\n')
         
-# load modules and labware
-        for i in range(len(pdjson['commands'])):
-            command_step = pdjson['commands'][i]
-            if command_step['commandType'] == 'loadModule':
-                f.write(f"  module{i} = protocol.load_module(module_name='{modules_name[command_step['params']['moduleId']]}',"
-                        f"location='{command_step['params']['location']['slotName']}')\n")
-                modules[command_step['params']['moduleId']] = f"module{i}"
-            elif command_step['commandType'] == 'loadLabware':
-                if list(command_step['params']['location'].keys())[0] == 'slotName':
-                    f.write(f"  labware{i} = protocol.load_labware(load_name='{labwares_name[command_step['params']['labwareId']]}', "
-                            f"location='{command_step['params']['location']['slotName']}')\n")
-                    labwares[command_step['params']['labwareId']] = f"labware{i}"
-                else:
-                    f.write(f"  labware{i} = {modules[command_step['params']['location']['moduleId']]}"
-                            f".load_labware('{labwares_name[command_step['params']['labwareId']]}')\n")
-                    labwares[command_step['params']['labwareId']] = f"labware{i}"
-                
-# load pipettes
-        for i in range(len(pdjson['commands'])):
-            command_step = pdjson['commands'][i]
-            if command_step['commandType'] == 'loadPipette':
-                if tiprack_assign == 'auto' or used_tiprack == True:
-                    tiprack_name = pdjson['designerApplication']['data']['pipetteTiprackAssignments'][command_step['params']['pipetteId']]
-                    tipracks = []
-                    for key, value in pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['labwareLocationUpdate'].items() :
-                        if key.split(':')[len(key.split(':'))-1] == tiprack_name :
-                            tipracks.append(labwares[key])
-                            tipracks_str = '[' + ']['.join(tipracks) + ']'
-                    ini_tiprack = tipracks[0]
-                    f.write(f"  pipette{i} = protocol.load_instrument(instrument_name='{pipettes_name[command_step['params']['pipetteId']]}', mount='{command_step['params']['mount']}',tip_racks={tipracks_str})\n")
-                    if used_tiprack == True:
-                        f.write(f"  pipette{i}.starting_tip = {ini_tiprack}.well('{starting_tip_well[i]}')\n")
-                else:
-                    f.write(f"  pipette{i} = protocol.load_instrument(instrument_name='{pipettes_name[command_step['params']['pipetteId']]}', mount='{command_step['params']['mount']}')\n")
-                pipettes[command_step['params']['pipetteId']] = f"pipette{i}"
+# load modules
+        for key in modules.keys():
+            if pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['moduleLocationUpdate'][key] == 'span7_8_10_11':
+                slot = '7'
+            else:
+                slot = pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['moduleLocationUpdate'][key]
+            f.write(f"  {modules_name[key][0:6].lower()}mod_{slot} = protocol.load_module(module_name='{modules_name[key]}',"
+                        f"location='{slot}')\n")
+            modules[key] = f"{modules_name[key][0:6].lower()}mod_{slot}"
+            
+# load labwares
+        for key in labwares.keys():
+            slot = pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['labwareLocationUpdate'][key]
+            if slot in modules :
+                f.write(f"  {pdjson['labwareDefinitions'][key.split(':')[1]]['metadata']['displayCategory'].lower()}_{modules[slot]} = {modules[slot]}.load_labware('{labwares_name[key]}')\n")
+                labwares[key] = f"{pdjson['labwareDefinitions'][key.split(':')[1]]['metadata']['displayCategory'].lower()}_{modules[slot]}"
+            elif key != 'fixedTrash':
+                f.write(f"  {pdjson['labwareDefinitions'][key.split(':')[1]]['metadata']['displayCategory'].lower()}_{slot} = protocol.load_labware(load_name='{labwares_name[key]}', "
+                            f"location='{slot}')\n")
+                labwares[key] = f"{pdjson['labwareDefinitions'][key.split(':')[1]]['metadata']['displayCategory'].lower()}_{slot}"
 
+# load pipettes
+        for pipId in pipettes.keys():
+            mount = pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['pipetteLocationUpdate'][pipId]
+            if tiprack_assign == 'auto' or used_tiprack == True:
+                tiprack_name = pdjson['designerApplication']['data']['pipetteTiprackAssignments'][pipId]
+                tipracks = []
+                for key, value in pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['labwareLocationUpdate'].items() :
+                    if key.split(':')[len(key.split(':'))-1] == tiprack_name :
+                        tipracks.append(labwares[key])
+                        tipracks_str = '[' + ']['.join(tipracks) + ']'
+                ini_tiprack = tipracks[0]
+                f.write(f"  {mount}_pipette = protocol.load_instrument(instrument_name='{pipettes_name[pipId]}', mount='{mount}',tip_racks={tipracks_str})\n")
+                if used_tiprack == True:
+                    f.write(f"  {mount}_pipette.starting_tip = {ini_tiprack}.well('{starting_tip_well[mount]}')\n")
+            else:
+                f.write(f"  {mount}_pipette = protocol.load_instrument(instrument_name='{pipettes_name[pipId]}', mount='{mount}')\n")
+            pipettes[pipId] = f"{mount}_pipette"
+        
 # Commands
         for i in range(len(pdjson['commands'])):
             command_step = pdjson['commands'][i]
@@ -251,5 +259,5 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
                 
         if webhook_url != None:
             f.write(f'  send_to_slack(webhook_url,"Your OT-2 protocol has just completed!")\n')
-    
-otjson2py(args.arg1,tiprack_assign=args.arg2,webhook_url=args.arg3)
+
+otjson2py2(args.arg1,tiprack_assign=args.arg2,webhook_url=args.arg3)

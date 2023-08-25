@@ -52,7 +52,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
         if value is None:
             metadata[key] = "n/a"
     metadata['tags'] = str(metadata['tags'])
-    metadata['apiLevel'] = '2.15'
+    metadata['apiLevel'] = '2.13'
     module_dict = {
         'temperatureModuleV2':'temperature module gen2',
         'magneticModuleV2':'magnetic module gen2',

@@ -260,4 +260,4 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
         if webhook_url != None:
             f.write(f'  send_to_slack(webhook_url,"Your OT-2 protocol has just completed!")\n')
 
-otjson2py2(args.arg1,tiprack_assign=args.arg2,webhook_url=args.arg3)
+otjson2py(args.arg1,tiprack_assign=args.arg2,webhook_url=args.arg3)

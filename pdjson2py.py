@@ -255,7 +255,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
                 # loading liquid, begins from API 2.14 is not supported.
                 None
             else:
-                f.write(f"not persed: {command_step['commandType']}, {i}\n")
+                f.write(f"not parsed: {command_step['commandType']}, {i}\n")
                 
         if webhook_url != None:
             f.write(f'  send_to_slack(webhook_url,"Your OT-2 protocol has just completed!")\n')

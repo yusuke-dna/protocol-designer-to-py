@@ -195,9 +195,6 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
             elif command_step['commandType'] == 'heaterShaker/waitForTemperature':
                 f.write(f"  {modules[command_step['params']['moduleId']]}." 
                         f"wait_for_temperature({command_step['params']['celsius']})\n")
-            elif command_step['commandType'] == 'heaterShaker/deactivateHeater':
-                f.write(f"  {modules[command_step['params']['moduleId']]}." 
-                        f"deactivate()\n")         
 
 # magnetic module control
             elif command_step['commandType'] == 'magneticModule/engage':

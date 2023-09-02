@@ -20,7 +20,7 @@
 2. Pipette is approaching to the bottom of aspirate well with specified offset
     1. Offset is automatically calculated from source well volume, on converted script using .depth/.lendth/.width/.diameter property
         1. PCR plate: assuming the well shape as a corn sliced at its 2/5 height, bearing 3/5 times diameter of bottom compared to top. offset_from_bottom = ( (2 * depth / diameter) ** (2/3) * (27 / 4 * depth * diameter ** 2 + 150 * volume / pi()) ** 3 - 3 * depth) / 2
-        2. Other case: offset_from_bottom = volume / (area) ; area = pi() * diameter ** 2 / 4 or area = width * length
+        2. Other case: Assuming flat bottom well, offset_from_bottom = volume / (area) ; area = pi() * diameter ** 2 / 4 or area = width * length
     2. For a safe margin, ( depth of labware / 5 ) or 10 mm lower than calculation will be used, with minimum limit of 0.5 mm
     3. If no volume given, mm from bottom offset should be given instead.
 3. Optional: Prewet the tip

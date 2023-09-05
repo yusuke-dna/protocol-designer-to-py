@@ -153,13 +153,11 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None) -> str:
             elif command_step['commandType'] == 'aspirate':
                 f.write(f"  {pipettes[command_step['params']['pipetteId']]}"
                         f".aspirate(volume={command_step['params']['volume']}, "
-                        f"location={labwares[command_step['params']['labwareId']]}['{command_step['params']['wellName']}'].bottom(z={command_step['params']['wellLocation']['offset']['z']}), "
-                        f"rate={command_step['params']['flowRate']})\n")
+                        f"location={labwares[command_step['params']['labwareId']]}['{command_step['params']['wellName']}'].bottom(z={command_step['params']['wellLocation']['offset']['z']})\n")
             elif command_step['commandType'] == 'dispense':
                 f.write(f"  {pipettes[command_step['params']['pipetteId']]}"
                         f".dispense(volume={command_step['params']['volume']}, "
-                        f"location={labwares[command_step['params']['labwareId']]}['{command_step['params']['wellName']}'].bottom(z={command_step['params']['wellLocation']['offset']['z']}), "
-                        f"rate={command_step['params']['flowRate']})\n")
+                        f"location={labwares[command_step['params']['labwareId']]}['{command_step['params']['wellName']}'].bottom(z={command_step['params']['wellLocation']['offset']['z']})\n")
             elif command_step['commandType'] == 'blowout':
                 f.write(f"  {pipettes[command_step['params']['pipetteId']]}"
                         f".blow_out(location={labwares[command_step['params']['labwareId']]}['{command_step['params']['wellName']}'].bottom(z={command_step['params']['wellLocation']['offset']['z']}))\n")

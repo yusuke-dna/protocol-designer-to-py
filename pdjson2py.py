@@ -1122,7 +1122,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
                         f.write(f"    {labwares[labwareId]}['{wellName}'].load_liquid({liquids[liquidId]},volume={volume_dict['volume']})\n")
 
 # steps in order
-        f.write(f"\n# Protocol section\n")
+        f.write(f"\n# Protocol sections")
         for i in range(len(pdjson['designerApplication']['data']['orderedStepIds'])):
             ordered_step = pdjson['designerApplication']['data']['savedStepForms'][pdjson['designerApplication']['data']['orderedStepIds'][i]]
             step = i + 1
@@ -1353,7 +1353,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
                             ]
                             repetition = int(profile_item['repetitions'])
                         f.write(f"    {modules[ordered_step['moduleId']]}.execute_profile(steps={profile}, repetitions={repetition}, block_max_volume={ordered_step['profileVolume']})\n")
-                        f.write(f"    # Profile has been executed and the thermocycler is kept hold as below.\n")
+                    f.write(f"    # Profile has been executed and the thermocycler is kept hold as below.\n")
                     if ordered_step['blockIsActiveHold'] == True:
                         f.write(f"    {modules[ordered_step['moduleId']]}.set_block_temperature(temperature={ordered_step['blockTargetTempHold']})\n")
                     elif ordered_step['blockIsActiveHold'] == False:

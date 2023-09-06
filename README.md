@@ -13,11 +13,11 @@ python3 pdjson2py.py file/path/to/protocol/designer/json/file
 ```
 # For two pipettes, specify the wells in the format [left pipette]/[right pipette].
 # No blanks are allowed. Use 'A1' if the left pipette uses a new tiprack, like:
-python3 pdjson2py.py /path/to/protocol/designer/json/file A1/C3
+python3 pdjson2py.py file/path/to/protocol/designer/json/file A1/C3
 ```
 ```
 # For single pipette usage (left/right unspecified), specify the well as follows:
-python3 pdjson2py.py /path/to/protocol/designer/json/file B10
+python3 pdjson2py.py file/path/to/protocol/designer/json/file B10
 ```
 7. A Slack notification feature is available when you include the Slack webhook URL as the second or third argument.
 ```

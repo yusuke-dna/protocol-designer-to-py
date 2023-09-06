@@ -18,9 +18,12 @@ python3 pdjson2py.py /path/to/protocol/designer/json/file A1/C3
 # For single pipette usage (left/right unspecified), specify the well as follows:
 python3 pdjson2py.py /path/to/protocol/designer/json/file B10
 ```
-7. A Slack notification feature is available when you include the Slack webhook URL as the third argument. In this case, the second argument should be used tiprack option as above or None.
+7. A Slack notification feature is available when you include the Slack webhook URL as the second or third argument.
 ```
-python3 pdjson2py.py file/path/to/protocol/designer/json/file None https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]
+python3 pdjson2py.py file/path/to/protocol/designer/json/file A1/C3 https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]
+```
+```
+python3 pdjson2py.py file/path/to/protocol/designer/json/file https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]
 ```
 8. Former version, extracting command list from JSON file, is available by adding the fourth argument `command`. By default in command mode, the script selects tips hard-written in "commands" object within the JSON file. This could lead to an unexpected order of tip selection when modifying the output Python file. To mitigate this, use the "auto" argument in used tip option. This removes pre-defined tip locations and allows the automatic assignment of tipracks to the pipettes, from the initial deck state in the Protocol Designer.
 ```

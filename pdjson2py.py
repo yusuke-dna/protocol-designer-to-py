@@ -1129,10 +1129,10 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
             f.write(f"\n# Step {step}. {ordered_step['stepName']}")
             if ordered_step['stepDetails'] != "":
                 f.write(f" Notes: {ordered_step['stepDetails'].rstrip()}\n")
-                f.write(f"    protocol.comment(msg='{ordered_step['stepDetails'].rstrip()}')\n")
+                f.write(f"    protocol.comment('Step {step}. {ordered_step['stepDetails'].rstrip()}')\n")
             else:
-                f.write("\n")
-            f.write(f"    protocol.comment('# Step {step}.')\n")            
+                f.write(f"\n    protocol.comment('Step {step}.')\n")  
+                      
 
 # liquid hanlding 
     # moving liquid

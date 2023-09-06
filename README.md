@@ -38,7 +38,7 @@ python3 pdjson2py.py /path/to/protocol/designer/json/file.json command
 ```
 
 # Limitations
-* All options in Protocol Designer ver. 6.2.2. are (supposedly) supported but the behavior is not identical. For instance, Default pipette flow rate of current API is twice faster than that of Protocol Designer adopts. Other intentional difference is commented in the code.
+* All options in Protocol Designer ver. 6.2.2. are (supposedly) supported but the behavior is not identical. For instance, Default pipette flow rate of current API is twice faster than that of Protocol Designer. Other intentional difference is commented in the code.
 * Used tip assignment limits API version to 2.13 (due to API bug). When used tip is not assigned, API version is 2.14 and liquid status is loaded.
 * Transfer in Commands mode object of JSON file is expressed as a combination of aspriate and dispense. The generated python file keeps the structure. Same to single cycle long profile in thermocycler.
 * Bug reports are welcome to improve the script.

@@ -909,7 +909,7 @@ def otjson2py_command(filename: str, tiprack_assign=None, webhook_url=None) -> s
                 if pdjson['commands'][i+1].get('commandType') == 'temperatureModule/waitForTemperature':
                     f.write(f"    {modules[command_step['params']['moduleId']]}.set_temperature(celsius={command_step['params']['celsius']})\n")
                 else:
-                    f.write(f"    {modules[command_step['params']['moduleId']]}.start_set_temperature(celsius={command_step['params']['celsius']}) # Hidden API\n")
+                    f.write(f"    {modules[command_step['params']['moduleId']]}.start_set_temperature(celsius={command_step['params']['celsius']}) # Hidden API returns immediately. Wait temperture step will follow always.\n")
             elif command_step['commandType'] == 'temperatureModule/waitForTemperature':
                 f.write(f"    while ({modules[command_step['params']['moduleId']]}.temperature != {command_step['params']['celsius']} and not protocol.is_simulating()):\n        protocol.delay(seconds=1)\n")
             elif command_step['commandType'] == 'temperatureModule/deactivate':

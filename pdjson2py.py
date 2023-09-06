@@ -69,9 +69,9 @@ def nested_method_output(f, pdjson):
                     dispense_touch_tip=False, dispense_touch_tip_offset=None, 
                     mix_touch_tip=False, mix_touch_tip_offset=None, pre_wet_tip=False,
                     aspirate_air_gap=0.0, dispense_air_gap=0.0, mix_air_gap=0.0, aspirate_delay=None, aspirate_delay_bottom=1.0, dispense_delay=None, dispense_delay_bottom=0.5,
-                    blow_out=False, blowout_location='trash', disposal_volume=None, step=0):
+                    blow_out=False, blowout_location='trash', disposal_volume=None):
         try:
-            nonlocal protocol
+            nonlocal protocol, step
             if step == 0:
                 raise ValueError('Step number must be 1 or more.')
             default_touchtip_offset_from_top = {pdjson['designerApplication']['data']['defaultValues']['touchTip_mmFromTop']}
@@ -1126,12 +1126,12 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
         for i in range(len(pdjson['designerApplication']['data']['orderedStepIds'])):
             ordered_step = pdjson['designerApplication']['data']['savedStepForms'][pdjson['designerApplication']['data']['orderedStepIds'][i]]
             step = i + 1
-            f.write(f"\n# Step {step}. {ordered_step['stepName']}")
+            f.write(f"\n    step = {step} # {ordered_step['stepName']}")
             if ordered_step['stepDetails'] != "":
-                f.write(f" Notes: {ordered_step['stepDetails'].rstrip()}\n")
-                f.write(f"    protocol.comment('Step {step}. {ordered_step['stepDetails'].rstrip()}')\n")
+                f.write(f" Notes: {ordered_step['stepDetails']}\n")
+                f.write(f"    protocol.comment(f'Step {{step}}. {ordered_step['stepDetails']}')\n")
             else:
-                f.write(f"\n    protocol.comment('Step {step}.')\n")  
+                f.write(f"\n    protocol.comment(f'Step {{step}}.')\n")  
                       
 
 # liquid hanlding 
@@ -1146,7 +1146,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
                     f.write(f"    liquid_handling(mode='consolidate', ")
                 elif ordered_step['path'] == 'multiDispense':
                     f.write(f"    liquid_handling(mode='distribute', ")
-                f.write(f"step={step}, pipette={pipettes[ordered_step['pipette']]}, volume={ordered_step['volume']},\n             "   # Volume can be one of float or list of float, as same as official instrument.transfer() attribute. Tuple is no longer supported.
+                f.write(f"pipette={pipettes[ordered_step['pipette']]}, volume={ordered_step['volume']},\n             "   # Volume can be one of float or list of float, as same as official instrument.transfer() attribute. Tuple is no longer supported.
                             f"aspirate_labware={labwares[ordered_step['aspirate_labware']]}, aspirate_wells={sorted_aspirate_wells},\n             "
                             f"dispense_labware={labwares[ordered_step['dispense_labware']]}, dispense_wells={sorted_dispense_wells},\n             ")
                 if ordered_step['aspirate_mmFromBottom'] != None:
@@ -1208,7 +1208,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
     # mixing liquid
             elif ordered_step['stepType'] == 'mix':
                 mix_wells = sort_well(ordered_step['wells'], ordered_step['mix_wellOrder_first'], ordered_step['mix_wellOrder_second'])
-                f.write(f"    liquid_handling(step={step}, mode='mix', pipette={pipettes[ordered_step['pipette']]}, repetitions={ordered_step['times']}, volume={ordered_step['volume']},\n        "   # Volume can be one of float or list of float, as same as official instrument.transfer() attribute. Tuple is no longer supported.
+                f.write(f"    liquid_handling(mode='mix', pipette={pipettes[ordered_step['pipette']]}, repetitions={ordered_step['times']}, volume={ordered_step['volume']},\n        "   # Volume can be one of float or list of float, as same as official instrument.transfer() attribute. Tuple is no longer supported.
                         f"mix_labware={labwares[ordered_step['labware']]}, mix_wells={mix_wells},\n        ")
                 if ordered_step['mix_mmFromBottom'] != None:
                     f.write(f"mix_offset={ordered_step['mix_mmFromBottom']}, ")   # asprirate_mmFromBottom is a float specifying identical offset over step
@@ -1435,7 +1435,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
                             f"            protocol.loaded_instruments[key].drop_tip()\n")
 
 # Home robot at last
-        f.write(f"# Home robot\n"
+        f.write(f"\n# Home robot\n"
                 f"    protocol.home()\n"
                 f"    for key in protocol.loaded_instruments:\n"
                 f"        if protocol.loaded_instruments[key].has_tip:\n"

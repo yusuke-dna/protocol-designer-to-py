@@ -1061,7 +1061,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
         nested_method_output(f, pdjson)
 
 # load modules
-        f.write(f'\n\n    debug = {debug}  # debug mode showing more comments\n\n')
+        f.write(f'\n    debug = {debug}  # debug mode shows more comments\n\n')
         f.write(f"# load modules\n")
         for key in modules.keys():
             if pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['moduleLocationUpdate'][key] == 'span7_8_10_11':

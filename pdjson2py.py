@@ -967,7 +967,7 @@ def otjson2py_command(filename: str, tiprack_assign=None, webhook_url=None) -> s
 # pdjson is a dictionary format data from Protocol Designer, apart from a special transfer-path option: 'reverse', a listed form of volume, aspirate_mmFromBottom and dispense_mmFromBottom, as well as wellOrder_first and wellOrder_second can be None. Mix has mix_airGap_checkbox and mix_airGap_volume. Thermocycler has extra thermocyclerFormType: 'thermocyclerHold' to enable incubation. 'sourceVolumes', 'destVolumes', and 'mixVolumes' are added to calculate offset.
 def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False) -> str:
     # Specifying starting well of the used tiprack.
-    if tiprack_assign == None or tiprack_assign == 'auto':
+    if tiprack_assign == None or tiprack_assign == 'auto' or tiprack_assign == 'A1/A1' or tiprack_assign == 'A1':
         used_tiprack = False
     else:
         used_tiprack = True

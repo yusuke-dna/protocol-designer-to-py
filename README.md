@@ -11,7 +11,8 @@ python3 pdjson2py.py file/path/to/protocol/designer/json/file
 5. Then the python script, "output.py" will be generated in the directory.
 6. Optionally, you can assign one used tiprack per pipette by specifying the starting well associated with either the left or the right pipette.
 ```
-# For two pipettes, specify the wells in the format [left pipette]/[right pipette]. No blanks are allowed. Use 'A1' if the left pipette uses a new tiprack, like:
+# For two pipettes, specify the wells in the format [left pipette]/[right pipette].
+# No blanks are allowed. Use 'A1' if the left pipette uses a new tiprack, like:
 python3 pdjson2py.py /path/to/protocol/designer/json/file A1/C3
 ```
 ```

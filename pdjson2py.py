@@ -1444,9 +1444,19 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
             f.write(f'    if protocol.is_simulating == False:\n'
                     f'        send_to_slack(webhook_url,"Your OT-2 protocol has just been completed!")\n')
 
-if args.arg4 == 'command':
-    otjson2py_command(args.arg1,tiprack_assign=args.arg2,webhook_url=args.arg3)
-elif args.arg4 == 'debug':   
-    otjson2py(args.arg1,tiprack_assign=args.arg2,webhook_url=args.arg3, debug=True)
+if len(args.arg2) > 7:
+    webhook_url = args.arg2
+    tiprack_assign = None
 else:
-    otjson2py(args.arg1,tiprack_assign=args.arg2,webhook_url=args.arg3)
+    webhook_url = args.arg3
+    tiprack_assign = args.arg2
+if args.arg4 == 'command':
+    otjson2py_command(args.arg1,tiprack_assign=tiprack_assign,webhook_url=webhook_url)
+elif args.arg3 == 'command':
+    otjson2py_command(args.arg1,tiprack_assign=tiprack_assign)
+elif args.arg2 == 'command':
+    otjson2py_command(args.arg1)
+elif args.arg4 == 'debug':   
+    otjson2py(args.arg1,tiprack_assign=tiprack_assign,webhook_url=webhook_url, debug=True)
+else:
+    otjson2py(args.arg1,tiprack_assign=tiprack_assign,webhook_url=webhook_url)

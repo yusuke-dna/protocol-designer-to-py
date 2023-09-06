@@ -27,10 +27,10 @@ python3 pdjson2py.py file/path/to/protocol/designer/json/file None https://hooks
 python3 pdjson2py.py /path/to/protocol/designer/json/file auto https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL] command
 ```
 ```
-$ python3 pdjson2py.py /path/to/protocol/designer/json/file auto command
+python3 pdjson2py.py /path/to/protocol/designer/json/file auto command
 ```
 ```
-$ python3 pdjson2py.py /path/to/protocol/designer/json/file command
+python3 pdjson2py.py /path/to/protocol/designer/json/file command
 ```
 
 # Limitations

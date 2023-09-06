@@ -2,7 +2,8 @@
 ## Sequence
 0. Volume/Offset is inspected
     1. Carryover cycle is calculated and if necessary the transfer volume is split
-    2. If the cycle exceeds max_carryover, the program should raise error.
+    2. If the carryover cycle exceeds max_carryover, the program should raise error.
+        1. In mix mode, mix cycle is multiplied to make mixing volume within pipette max_volume. max_carryover is applied to the coefficient of original mix cycle. (if max_carryover is 10 and user specifies 100 µl mix 10 times, with P20 pipette, it is processed as 20 µL mix 50 time and 5x is less than max_carryover)
     3. At this step, float volume for many-to-many transfer is converted to list of float.
     4. If source/destination volume is given, aspirate/dispense offset is calculated.
         1. Offset is automatically calculated from source well volume, on converted script using .depth/.lendth/.width/.diameter property

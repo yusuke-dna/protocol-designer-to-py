@@ -432,6 +432,8 @@ def nested_method_output(f, pdjson):
                     pipette.pick_up_tip()
                     
                 for j in range(len(handling_volumes[i])):               # each carryover/mixing cycle
+                    if debug == True:
+                        protocol.comment(f"i={{i}}, j={{j}}, k={{k}}, l={{l}}")
                     if mode == 'distribute' and not cont_start_flag[i]: # skipped during path between dest to dest in distribute mode
                         pass
                     elif mode == 'mix':                                   # no tip replacement during mixing the same well (over same i)
@@ -631,7 +633,7 @@ def nested_method_output(f, pdjson):
                             pass
                         elif mode == 'mix' and j < len(handling_volumes[i]) - 1: # skipped in mix mode apart from the last cycle
                             pass
-                        elif blowout_location == 'destination well' and disposal_volume ==:   # blow out to destination well is not allowed in distribute mode
+                        elif blowout_location == 'destination well' and disposal_volume == 0:   # blow out to destination well is not allowed in distribute mode
                             if debug == True:
                                 protocol.comment("browout-dest")
                             pipette.blow_out(dispense_labware[dispense_wells[i]].top(default_blowout_offset_from_top))
@@ -699,7 +701,7 @@ def nested_method_output(f, pdjson):
             pipette.flow_rate.aspirate = default_aspirate_flow_rate
             pipette.flow_rate.dispense = default_dispense_flow_rate
         except Exception as e:
-            raise Exception(f"{{str(sys.exc_info()[0]).split('.')[-1][:-2]}} in Step {{step}}. transfer-{{mode}}: {{e}}, line {{sys.exc_info()[2].tb_lineno}}") # Left for debug {{handling_volumes}} {{cont_volumes}} {{cont_start_flag}} i:{{i}} j:{{j}} k:{{k}} {{blowout_location}}")
+            raise Exception(f"{{str(sys.exc_info()[0]).split('.')[-1][:-2]}} in Step {{step}}. transfer-{{mode}}: {{e}}, line {{sys.exc_info()[2].tb_lineno}}")
 ''')
 
 def sort_well(wells, first_sort, second_sort) -> list:
@@ -1035,8 +1037,6 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
 
 # header
     with open('output.py', 'w') as f:
-        if debug == True:
-            f.write('debug = True  # debug mode showing more comments\n\n')
         f.write('from opentrons import protocol_api\nimport json\nimport time\nimport math\nimport sys\n\n')
         f.write(f'metadata = {metadata}\n\n')
         if webhook_url is not None:
@@ -1061,6 +1061,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
         nested_method_output(f, pdjson)
 
 # load modules
+        f.write(f'\n\n    debug = {debug}  # debug mode showing more comments\n\n')
         f.write(f"# load modules\n")
         for key in modules.keys():
             if pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['moduleLocationUpdate'][key] == 'span7_8_10_11':

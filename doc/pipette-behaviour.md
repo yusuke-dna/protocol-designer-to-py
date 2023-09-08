@@ -1,4 +1,5 @@
-# How Pipette Works in Transfer/Distribute/Consolidate/Mix methods
+# How Pipette Works in Transfer/Distribute/Consolidate/Mix method
+All mode (+ reverse mode) shares the same liquid_handling() method.
 ## Sequence
 0. Volume/Offset is inspected
     1. Carryover cycle is calculated and if necessary the transfer volume is split

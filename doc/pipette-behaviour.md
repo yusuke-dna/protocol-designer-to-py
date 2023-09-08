@@ -82,12 +82,13 @@
 18. Aspirate/dispense rate is resumed to default
 ## List structure of parameters
 ### Liquidhandling volumes
-#### volume (transfer/distribute/consolidate)
+#### volume (transfer/distribute/consolidate/mix)
 - float, or list of float to specify liquid hanlding order and handling volumes
-- no carryover assessed
-#### handling_volumes
+- for mix mode, circulating volume is volume * repetitions
+- the volume can be higher than pipette capacity. carryover will be assessed and stored in handling_volumes 
+#### handling_volumes 
 - list (i th transfer path) of list (j th carryover/mix cycle)
-#### cont_volumes
+#### cont_volumes (distribute/consolidate)
 - list (k th continuous transfer path) of list (l th item of continous transfer path) of list (j th carryover cycle) 
 ### Source/Destination/Mix volumes
 #### source_volumes

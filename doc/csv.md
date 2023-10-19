@@ -1,14 +1,44 @@
 # CSV for OT-2
-## Column Definition
-0. Step
-1. Step Type
+## Column Definition (for transfer)
+0. Step# (Integral serial, shown in generated protocol)
+1. Step Type [Transfer|Mix]
 2. Comment (Step comment at the top row of each step)
-3. Source Labware / Command target labware
-4. Source Slot / Command target slot
-5. Source Well/ Command target well (optional)
+3. Source Labware (labware API name)
+4. Source Slot (str, 1-11 or A1,A2... for future OT Flex support)
+5. Source Well (str)
+6. Source Volume (float in µL)
+7. Source Name (str, the last word can be hex color code starting from #)
+8. Dest Labware (labware API name)
+9. Dest Slot (str, 1-11 or A1,A2... for future OT Flex support)
+10. Dest Well (str)
+11. Dest Volume (float in µL)
+12. Dest Name (the last word can be hex color code starting from #)
+13. Handling Volume (float in µL)
+14. Change Tip ([blank]|always|per source|per destination|once|never)
+15. Aspirate Rate (int, 1-6)
+16. Prewet Cycle (int)
+17. Source Delay (int, sec)
+18. Source Touch Tip (float, speed 0.25-1)
+19. Source Air Gap (flaot, in µL)
+20. Dispense Rate (int, 1-6)
+21. Pipetting Cycle (int)
+22. Dest Delay (int, sec)
+23. Dest Touch Tip (flaot, speed 0.25-1)
+24. Dest Air Gap (int, in uL)
+25. Reverse Mode ([blank]|Bin|Source)
+26. Distribute (No|Allow|Force [Bin|Source])
+27. Pipette
+
+## Column definition for miscellaneous commands (to be updated)
+0. Step# (Integral serial, shown in generated protocol)
+1. Step Type (heaterShaker|temperature|magnet|thermocycler|pause|control)
+2. Comment (Step comment at the top row of each step)
+3. Command target labware (labware API name)
+4. Command target slot (str, 1-11 or A1,A2... for future OT Flex support)
+5. Command target well (str, optional)
 6. Source Volume (µL)
 7. Source Name (the last word can be hex color code starting from #)
-8. Dest Labware / User Friendly Description of command
+8. User Friendly Description of command
 9. Dest Slot / Command option integral
 10. Dest Well / Command option string
 11. Dest Volume (µL) / Command option float
@@ -35,12 +65,14 @@
 - mixing cycle and target are indicated by prewet cycle (source) or pipetting cycle (dest) and handling volume specify mixing volume.
 - All pipetting options apart from prewet and pipetting follows parent transfer.
 
-## Miscellanoeous Command
+## Miscellanoeous Command (step type)
+(heaterShaker|temperature|magnet|thermocycler|pause|control)
 - Temperature Module Control
 - Magnetic Module Control
 - Thermocycler Module Control
 - Heater-Shaker Module Control
 - Pause
+- Other control (Home)
 ### Temperature Module Control
 #### Dest Well
 - deactivate

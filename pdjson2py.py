@@ -469,7 +469,7 @@ def nested_method_output(f, pdjson):
             # 3. Mix before aspirating
                     if mode == 'consolidate' or mode == 'mix': # skipped in consolidate mode and mix mode
                         pass
-                    elif mix_before and j == 0 and ((mode == 'transfer_mode' or mode == 'reverse_mode') or (mode == 'distribute' and l == 0)):    # first cycle of either carryover of transfer/reverse or distribute                   # mix_before only at the first cycle of carryover 
+                    elif mix_before and j == 0 and ((mode == 'transfer' or mode == 'reverse') or (mode == 'distribute' and l == 0)):    # first cycle of either carryover of transfer/reverse or distribute                   # mix_before only at the first cycle of carryover 
                         if debug == True:
                             protocol.comment("mix before")
                         for _ in range(mix_before_cycles[i]):
@@ -610,7 +610,7 @@ def nested_method_output(f, pdjson):
             # 10. Mix after dispensing
                     if mode == 'consolidate' or mode == 'mix': # skipped in distribute/mix mode
                         pass
-                    elif mix_after and j == len(handling_volumes[i]) - 1 and ((mode == 'transfer_mode' or mode == 'reverse_mode') or (mode == 'consolidate' and l == len(cont_volumes[k]) - 1)):    # last cycle of either carryover of transfer/reverse or consolidate
+                    elif mix_after and j == len(handling_volumes[i]) - 1 and ((mode == 'transfer' or mode == 'reverse') or (mode == 'consolidate' and l == len(cont_volumes[k]) - 1)):    # last cycle of either carryover of transfer/reverse or consolidate
                         if debug == True:
                             protocol.comment("mix after")
                         for _ in range(mix_after_cycles[i]):

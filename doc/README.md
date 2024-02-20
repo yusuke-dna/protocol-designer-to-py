@@ -1,5 +1,5 @@
 # Documents for new version of pd2py
-The content is under preparation. New version, utilising Step instead of Command of JSON file is available as default setting. For debug or specific purpose, command mode is available by adding fourth argument `command`
+The content is under preparation for future update. New version, utilising Step instead of Command of JSON file is available as default setting. For debug or specific purpose, command mode is available by adding fourth argument `command`
 # Overview
 protocol-designer-to-py, `pd2py`, is to convert JSON file exported from Opentrons Protocol Designer (ver. 8.01) into Python script for Opentrons Python API 2.17. `pd2py` only support OT-2. The generated python file will be used as a template of users' in-house protocol coding. Thus the python protocol should be flexible and is equiped with user-friendly variables and comments ready for edit.
 ## Command mode (only available in CLI)

@@ -63,24 +63,26 @@ The pd2py receive JSON file input in two ways.
   - changeTip rule: Configured in script block
   - aspirate_wells/aspirate_wellOrder_first/aspirate_wellOrder_second: Aspilate wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
   - dispense_wells/dispense_wellOrder_first/dispense_wellOrder_second: Dispense wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
-- stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+  - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
 ## Mix (designerApplication/data/savedStepForms/[stepId]/**stepType:mix**)
-- times
-- changeTip
-- labware
-- mix_wellOrder_first
-- mix_wellOrder_second
-- blowout_checkbox
-- blowout_location
-- mix_mmFromBottom
-- pipette
-- volume
-- wells (list)
-- aspirate_flowRate
-- dispense_flowRate
-- aspirate_delay_checkbox
-- aspirate_delay_seconds
-- dispense_delay_checkbox
-- dispense_delay_seconds
-- mix_touchTip_checkbox
-- mix_touchTip_mmFromBottom
+- passed as argument for `liquid_handling()` method
+  - times
+  - labware
+  - blowout_checkbox
+  - blowout_location
+  - mix_mmFromBottom
+  - volume
+  - aspirate_flowRate
+  - dispense_flowRate
+  - aspirate_delay_checkbox
+  - aspirate_delay_seconds
+  - dispense_delay_checkbox
+  - dispense_delay_seconds
+  - mix_touchTip_checkbox
+  - mix_touchTip_mmFromBottom
+- Converted in different way
+  - pipette (specified by UUID, stored in pipettes and left/right infor in  StepForms/__INITIAL_DECK_SETUP_STEP__/pipetteLocationUpdate): extract left or right, and specified as pipette object. (Assume no pipettes exchange happen during protocol.)
+  - changeTip: Configured in script block
+  - wells/mix_wellOrder_first/mix_wellOrder_second: Dispense wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
+
+

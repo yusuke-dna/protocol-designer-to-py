@@ -25,9 +25,9 @@ The pd2py receive JSON file input in two ways.
     3. **`right`:** default="A1", help="For used tiprack reuse of right pipette, input e.g. 'E10'. Not specified indicates all tipracks are filled."
     4. **`url`:** default="", help="Slack Webhook URL here like 'https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]' to enable notification via Slack.
     5. **`source`:** default="step", help="Specify 'command' to enable command mode for debugging. 'commands' object is used to generate python script. By default, GUI equivalent steps in 'designerApplication' obejct is used."
-# Default Step Mode
-## Supported Protocol Options (Object in JSON file)
-### Transfer (designerApplication/data/savedStepForms/[stepId]/**stepType:moveLiquid**)
+# Supported Protocol Options (Object in JSON file)
+## Default Step Mode (designerApplication/data/savedStepForms/[stepId]/**stepType:_____**)
+### Transfer (stepType:moveLiquid*)
 - passed as argument for `liquid_handling()` method
   - volume per well
   - path (single or multiAspirate or multiDispense)
@@ -70,7 +70,7 @@ The pd2py receive JSON file input in two ways.
   - aspirate_wells/aspirate_wellOrder_first/aspirate_wellOrder_second: Aspilate wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
   - dispense_wells/dispense_wellOrder_first/dispense_wellOrder_second: Dispense wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
-### Mix (designerApplication/data/savedStepForms/[stepId]/**stepType:mix**)
+### Mix (stepType:mix)
 - passed as arguments for `liquid_handling()` method
   - times
   - labware
@@ -91,7 +91,7 @@ The pd2py receive JSON file input in two ways.
   - changeTip: Configured in script block
   - wells/mix_wellOrder_first/mix_wellOrder_second: Dispense wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
-### HeaterShaker module control (designerApplication/data/savedStepForms/[stepId]/**stepType:heaterShaker**)
+### HeaterShaker module control (stepType:heaterShaker)
 - passed as arguments for official module API.
   - setHeaterShakerTemperature
   - targetHeaterShakerTemperature
@@ -104,21 +104,21 @@ The pd2py receive JSON file input in two ways.
 - Converted in different way
   - moduleId (specified by UUID, stored in modules.)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
-### temperature module control (designerApplication/data/savedStepForms/[stepId]/**stepType:temperature**)
+### temperature module control (stepType:temperature)
 - passed as arguments for official module API.
   - setTemperature
   - targetTemperature
 - Converted in different way
   - moduleId (specified by UUID, stored in modules.)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
-### magnetic module control (designerApplication/data/savedStepForms/[stepId]/**stepType:magnet**)
+### magnetic module control (stepType:magnet)
 - passed as arguments for official module API.
   - magnetAction
   - engageHeight
 - Converted in different way
   - moduleId (specified by UUID, stored in modules.)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
-### thermocycler module control (designerApplication/data/savedStepForms/[stepId]/**stepType:thermocycler**)
+### thermocycler module control (stepType:thermocycler)
 - passed as arguments for official module API. One API line per profileStep/profileCycle due to nesting number limitation of API.
   - thermocyclerFormType (thermocyclerState or thermocyclerProfile)
   - blockIsActive
@@ -146,7 +146,7 @@ The pd2py receive JSON file input in two ways.
 - Converted in different way
   - moduleId (specified by UUID, stored in modules.)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
-### Pause control (designerApplication/data/savedStepForms/[stepId]/**stepType:pause**)
+### Pause control (stepType:pause)
 - passed as arguments for official module API. One API line per profileStep/profileCycle due to nesting number limitation of API.
   - pauseAction
   - pauseHour
@@ -156,3 +156,10 @@ The pd2py receive JSON file input in two ways.
 - Converted in different way
   - moduleId (specified by UUID, stored in modules. monitor temperature of the module by API)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+### Extended control (stepType:control)
+Extended step type definition to add following features:
+- home->protocol.home()
+- removeTip->remove tips from all pipettes
+- comment->show comment on Opentron app and optionally notify via Slack.
+## Command mode
+

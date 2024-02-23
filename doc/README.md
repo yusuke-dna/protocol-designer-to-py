@@ -23,9 +23,10 @@ The pd2py receive JSON file input in two ways.
 # Supported Protocol Block (Object in JSON file)
 ## Transfer (designerApplication/data/savedStepForms/[stepId]/**stepType:moveLiquid**)
 - pipette (specified by UUID, stored in pipettes and left/right infor in  StepForms/__INITIAL_DECK_SETUP_STEP__/pipetteLocationUpdate)
-- volume
-- changeTip
-- path
+- volume per well
+- changeTip rule 
+- path (single or multiAspirate or multiDispense)
+__- aspirate_wells_grouped (unclear what is this)__
 - aspirate_flowRate
 - aspirate_labware
 - aspirate_wells (list)
@@ -44,4 +45,45 @@ The pd2py receive JSON file input in two ways.
 - dispense_wellOrder_first
 - dispense_wellOrder_second
 - dispense_mix_checkbox
-- 
+- dispense_mix_times
+- dispense_mix_volume
+- dispense_mmFromBottom
+- dispense_touchTip_checkbox
+- dispense_touchTip_mmFromBottom
+- disposalVolume_checkbox
+- disposalVolume_volume
+- blowout_checkbox
+- blowout_location
+- preWetTip
+- aspirate_airGap_checkbox
+- aspirate_airGap_volume
+- aspirate_delay_checkbox
+- aspirate_delay_mmFromBottom
+- aspirate_delay_seconds
+- dispense_airGap_checkbox
+- dispense_airGap_volume
+- dispense_delay_checkbox
+- dispense_delay_seconds
+- dispense_delay_mmFromBottom
+- stepName (print right before script step as a comment in format: [stepName]: [stepDetails] )
+- stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+## Mix (designerApplication/data/savedStepForms/[stepId]/**stepType:mix**)
+- times
+- changeTip
+- labware
+- mix_wellOrder_first
+- mix_wellOrder_second
+- blowout_checkbox
+- blowout_location
+- mix_mmFromBottom
+- pipette
+- volume
+- wells (list)
+- aspirate_flowRate
+- dispense_flowRate
+- aspirate_delay_checkbox
+- aspirate_delay_seconds
+- dispense_delay_checkbox
+- dispense_delay_seconds
+- mix_touchTip_checkbox
+- mix_touchTip_mmFromBottom

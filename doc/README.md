@@ -20,53 +20,50 @@ The pd2py receive JSON file input in two ways.
   3. **`right`:** default="A1", help="For used tiprack reuse of right pipette, input e.g. 'E10'. Not specified indicates all tipracks are filled."
   4. **`url`:** default="", help="Slack Webhook URL here like 'https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]' to enable notification via Slack.
   5. **`source`:** default="step", help="Specify 'command' to enable command mode for debugging. 'commands' object is used to generate python script. By default, GUI equivalent steps in 'designerApplication' obejct is used."
-# Supported Protocol Block (Object in JSON file)
+# Supported Protocol Options (Object in JSON file)
 ## Transfer (designerApplication/data/savedStepForms/[stepId]/**stepType:moveLiquid**)
-- pipette (specified by UUID, stored in pipettes and left/right infor in  StepForms/__INITIAL_DECK_SETUP_STEP__/pipetteLocationUpdate)
-- volume per well
-- changeTip rule 
-- path (single or multiAspirate or multiDispense)
-__- aspirate_wells_grouped (unclear what is this)__
-- aspirate_flowRate
-- aspirate_labware
-- aspirate_wells (list)
-- aspirate_wellOrder_first
-- aspirate_wellOrder_second
-- aspirate_mix_checkbox
-- aspirate_mix_times
-- aspirate_mix_volume
-- aspirate_mmFromBottom
-- aspirate_touchTip_checkbox
-- aspirate_touchTip_mmFromBottom
-- aspirate_touchTip_mmFromBottom
-- dispense_flowRate
-- dispense_labware
-- dispense_wells
-- dispense_wellOrder_first
-- dispense_wellOrder_second
-- dispense_mix_checkbox
-- dispense_mix_times
-- dispense_mix_volume
-- dispense_mmFromBottom
-- dispense_touchTip_checkbox
-- dispense_touchTip_mmFromBottom
-- disposalVolume_checkbox
-- disposalVolume_volume
-- blowout_checkbox
-- blowout_location
-- preWetTip
-- aspirate_airGap_checkbox
-- aspirate_airGap_volume
-- aspirate_delay_checkbox
-- aspirate_delay_mmFromBottom
-- aspirate_delay_seconds
-- dispense_airGap_checkbox
-- dispense_airGap_volume
-- dispense_delay_checkbox
-- dispense_delay_seconds
-- dispense_delay_mmFromBottom
-- stepName (print right before script step as a comment in format: [stepName]: [stepDetails] )
-- stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+- passed as argument for `liquid_handling()` method
+  - volume per well
+  - path (single or multiAspirate or multiDispense)
+  __- aspirate_wells_grouped (unclear what is this)__
+  - aspirate_flowRate
+  - aspirate_labware
+  - aspirate_mix_checkbox
+  - aspirate_mix_times
+  - aspirate_mix_volume
+  - aspirate_mmFromBottom
+  - aspirate_touchTip_checkbox
+  - aspirate_touchTip_mmFromBottom
+  - aspirate_touchTip_mmFromBottom
+  - dispense_flowRate
+  - dispense_labware
+  - dispense_mix_checkbox
+  - dispense_mix_times
+  - dispense_mix_volume
+  - dispense_mmFromBottom
+  - dispense_touchTip_checkbox
+  - dispense_touchTip_mmFromBottom
+  - disposalVolume_checkbox
+  - disposalVolume_volume
+  - blowout_checkbox
+  - blowout_location
+  - preWetTip
+  - aspirate_airGap_checkbox
+  - aspirate_airGap_volume
+  - aspirate_delay_checkbox
+  - aspirate_delay_mmFromBottom
+  - aspirate_delay_seconds
+  - dispense_airGap_checkbox
+  - dispense_airGap_volume
+  - dispense_delay_checkbox
+  - dispense_delay_seconds
+  - dispense_delay_mmFromBottom
+- Converted in different way
+  - pipette (specified by UUID, stored in pipettes and left/right infor in  StepForms/__INITIAL_DECK_SETUP_STEP__/pipetteLocationUpdate): extract left or right, and specified as pipette object. (Assume no pipettes exchange happen during protocol.)
+  - changeTip rule: Configured in script block
+  - aspirate_wells/aspirate_wellOrder_first/aspirate_wellOrder_second: Aspilate wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
+  - dispense_wells/dispense_wellOrder_first/dispense_wellOrder_second: Dispense wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
+- stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
 ## Mix (designerApplication/data/savedStepForms/[stepId]/**stepType:mix**)
 - times
 - changeTip

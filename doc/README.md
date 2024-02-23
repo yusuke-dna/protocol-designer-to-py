@@ -105,6 +105,23 @@ The pd2py receive JSON file input in two ways.
   - moduleId (specified by UUID, stored in modules.)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
 ### temperature module control (designerApplication/data/savedStepForms/[stepId]/**stepType:temperature**)
+- passed as arguments for official module API.
+  - setTemperature
+  - targetTemperature
+- Converted in different way
+  - moduleId (specified by UUID, stored in modules.)
+  - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
 ### magnetic module control (designerApplication/data/savedStepForms/[stepId]/**stepType:magnet**)
+- passed as arguments for official module API.
+  - magnetAction
+  - engageHeight
+- Converted in different way
+  - moduleId (specified by UUID, stored in modules.)
+  - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
 ### thermocycler module control (designerApplication/data/savedStepForms/[stepId]/**stepType:thermocycler**)
-
+- passed as arguments for official module API.
+  - magnetAction
+  - engageHeight
+- Converted in different way
+  - moduleId (specified by UUID, stored in modules.)
+  - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )

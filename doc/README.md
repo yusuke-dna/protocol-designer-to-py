@@ -156,10 +156,15 @@ The pd2py receive JSON file input in two ways.
 - Converted in different way
   - moduleId (specified by UUID, stored in modules. monitor temperature of the module by API)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+### Move labware (stepType:moveLabware)
+- passed as arguments for official module API. One API line per profileStep/profileCycle due to nesting number limitation of API.
+  - newLocation
+- Converted in different way
+  - labware (specified by UUID, stored in modules. print arg as loaded labware variable)
+  - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
 ### Extended control (stepType:control)
 Extended step type definition to add following features:
 - home->protocol.home()
 - removeTip->remove tips from all pipettes
 - comment->show comment on Opentron app and optionally notify via Slack.
 ## Command mode
-

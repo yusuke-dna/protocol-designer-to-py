@@ -5,7 +5,7 @@ protocol-designer-to-py, `pd2py`, is to convert JSON file exported from Opentron
 
 Thus the python protocol should be flexible and is equiped with user-friendly variables and comments ready for edit.
 
-The code is consists of (1) simple logical substitution to Openrons API, (2) comprehensive `liquidhandling()` method and (3) miscellaneous methods, (2) and (3) will be hard-copied to generating Python file.
+The code is consists of (1) simple logical substitution to Openrons API, (2) Opentrons API naming and loading pipettes, liquid, tipracks, modules, and labware according to Protocol Designer configuration, (3) comprehensive `liquidhandling()` method and (4) miscellaneous methods and variables, (3) and (4) are to be hard-copied to generated Python file.
 
 ## Command mode (only available in CLI)
 The protocol of liquid handling is stored in JSON file in two different ways. Simpler one is in `commands` object. Command mode traces and literally translates commands to Python API step by step. Serial number is marked every 10 commands for readability.
@@ -119,9 +119,40 @@ The pd2py receive JSON file input in two ways.
   - moduleId (specified by UUID, stored in modules.)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
 ### thermocycler module control (designerApplication/data/savedStepForms/[stepId]/**stepType:thermocycler**)
-- passed as arguments for official module API.
-  - magnetAction
-  - engageHeight
+- passed as arguments for official module API. One API line per profileStep/profileCycle due to nesting number limitation of API.
+  - thermocyclerFormType (thermocyclerState or thermocyclerProfile)
+  - blockIsActive
+  - blockTargetTemp
+  - lidIsActive
+  - lidTargetTemp
+  - lidOpen
+  - profileVolume
+  - profileTargetLidTemp
+  - profileItemsById (sort by orderedProfileItems)
+    - type (profileStep or profileCycle)
+    - repetitions (only in profileCycle)
+    - steps (only in profileCycle)
+      - temperature
+      - durationMinutes
+      - durationSeconds
+    - temperature (only in profileStep)
+    - durationMinutes (only in profileStep)
+    - durationSeconds (only in profileStep)
+  - blockIsActiveHold
+  - blockTargetTempHold
+  - lidIsActiveHold
+  - lidTargetTempHold
+  - lidOpenHold
 - Converted in different way
   - moduleId (specified by UUID, stored in modules.)
+  - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+### Pause control (designerApplication/data/savedStepForms/[stepId]/**stepType:pause**)
+- passed as arguments for official module API. One API line per profileStep/profileCycle due to nesting number limitation of API.
+  - pauseAction
+  - pauseHour
+  - pauseMinute
+  - pauseSecond
+  - pauseMessage
+- Converted in different way
+  - moduleId (specified by UUID, stored in modules. monitor temperature of the module by API)
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )

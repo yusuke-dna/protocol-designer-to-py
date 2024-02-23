@@ -1,7 +1,12 @@
 # Documents for new version of pd2py
 The content is under preparation for future update. Latest version, utilising Step instead of Command of JSON file is available as default setting. For debug or specific purpose, command mode is available by adding fourth argument `command`
 # Overview
-protocol-designer-to-py, `pd2py`, is to convert JSON file exported from Opentrons Protocol Designer (ver. 8.01) into Python script for Opentrons Python API 2.16. `pd2py` only support OT-2. The generated python file will be used as a template of users' in-house protocol coding. Thus the python protocol should be flexible and is equiped with user-friendly variables and comments ready for edit.
+protocol-designer-to-py, `pd2py`, is to convert JSON file exported from Opentrons Protocol Designer (ver. 8.01) into Python script for Opentrons Python API 2.16. `pd2py` only support OT-2. The generated python file will be used as a template of users' in-house protocol coding.
+
+Thus the python protocol should be flexible and is equiped with user-friendly variables and comments ready for edit.
+
+The code is consists of (1) simple logical substitution to Openrons API, (2) comprehensive `liquidhandling()` method and (3) miscellaneous methods, (2) and (3) will be hard-copied to generating Python file.
+
 ## Command mode (only available in CLI)
 The protocol of liquid handling is stored in JSON file in two different ways. Simpler one is in `commands` object. Command mode traces and literally translates commands to Python API step by step. Serial number is marked every 10 commands for readability.
 ## Step mode (default)
@@ -20,8 +25,9 @@ The pd2py receive JSON file input in two ways.
     3. **`right`:** default="A1", help="For used tiprack reuse of right pipette, input e.g. 'E10'. Not specified indicates all tipracks are filled."
     4. **`url`:** default="", help="Slack Webhook URL here like 'https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]' to enable notification via Slack.
     5. **`source`:** default="step", help="Specify 'command' to enable command mode for debugging. 'commands' object is used to generate python script. By default, GUI equivalent steps in 'designerApplication' obejct is used."
-# Supported Protocol Options (Object in JSON file)
-## Transfer (designerApplication/data/savedStepForms/[stepId]/**stepType:moveLiquid**)
+# Default Step Mode
+## Supported Protocol Options (Object in JSON file)
+### Transfer (designerApplication/data/savedStepForms/[stepId]/**stepType:moveLiquid**)
 - passed as argument for `liquid_handling()` method
   - volume per well
   - path (single or multiAspirate or multiDispense)
@@ -64,8 +70,8 @@ The pd2py receive JSON file input in two ways.
   - aspirate_wells/aspirate_wellOrder_first/aspirate_wellOrder_second: Aspilate wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
   - dispense_wells/dispense_wellOrder_first/dispense_wellOrder_second: Dispense wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
-## Mix (designerApplication/data/savedStepForms/[stepId]/**stepType:mix**)
-- passed as argument for `liquid_handling()` method
+### Mix (designerApplication/data/savedStepForms/[stepId]/**stepType:mix**)
+- passed as arguments for `liquid_handling()` method
   - times
   - labware
   - blowout_checkbox
@@ -81,8 +87,24 @@ The pd2py receive JSON file input in two ways.
   - mix_touchTip_checkbox
   - mix_touchTip_mmFromBottom
 - Converted in different way
-  - pipette (specified by UUID, stored in pipettes and left/right infor in  StepForms/__INITIAL_DECK_SETUP_STEP__/pipetteLocationUpdate): extract left or right, and specified as pipette object. (Assume no pipettes exchange happen during protocol.)
+  - pipette (specified by UUID, stored in pipettes and left/right **infor** in  StepForms/__INITIAL_DECK_SETUP_STEP__/pipetteLocationUpdate): extract left or right, and specified as pipette object. (Assume no pipettes exchange happen during protocol.)
   - changeTip: Configured in script block
   - wells/mix_wellOrder_first/mix_wellOrder_second: Dispense wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
-
+  - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+### HeaterShaker module control (designerApplication/data/savedStepForms/[stepId]/**stepType:heaterShaker**)
+- passed as arguments for official module API.
+  - setHeaterShakerTemperature
+  - targetHeaterShakerTemperature
+  - targetSpeed
+  - setShake
+  - latchOpen
+  - heaterShakerSetTimer
+  - heaterShakerTimerMinutes
+  - heaterShakerTimerSeconds
+- Converted in different way
+  - moduleId (specified by UUID, stored in modules.)
+  - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+### temperature module control (designerApplication/data/savedStepForms/[stepId]/**stepType:temperature**)
+### magnetic module control (designerApplication/data/savedStepForms/[stepId]/**stepType:magnet**)
+### thermocycler module control (designerApplication/data/savedStepForms/[stepId]/**stepType:thermocycler**)
 

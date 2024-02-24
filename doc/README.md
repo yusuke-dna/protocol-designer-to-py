@@ -1,7 +1,7 @@
-# Documents for new version of pd2py
+# Documents for new version of pdjson2py
 The content is under preparation for future update. Latest version, utilising Step instead of Command of JSON file is available as default setting. For debug or specific purpose, command mode is available by adding fourth argument `command`
 # Overview
-protocol-designer-to-py, `pd2py`, is to convert JSON file exported from Opentrons Protocol Designer (ver. 8.01) into Python script for Opentrons Python API 2.16. `pd2py` only support OT-2. The generated python file will be used as a template of users' in-house protocol coding.
+protocol-designer-to-py, `pdjson2py`, is to convert JSON file exported from Opentrons Protocol Designer (ver. 8.01) into Python script for Opentrons Python API 2.16. `pdjson2py` only support OT-2. The generated python file will be used as a template of users' in-house protocol coding.
 
 Thus the python protocol should be flexible and is equiped with user-friendly variables and comments ready for edit.
 
@@ -11,9 +11,9 @@ The code is consists of (1) simple logical substitution to Openrons API, (2) Ope
 The protocol of liquid handling is stored in JSON file in two different ways. Simpler one is in `commands` object. Command mode traces and literally translates commands to Python API step by step. Serial number is marked every 10 commands for readability.
 ## Step mode (default)
 More organized one is in `designerApplication` object, as displayed in Protocol Designer web app. For readability, every step number and step notes are inserted as comments.
-Step mode of pd2py features a few extended control compared to protocol designer, detailed later. 
+Step mode of pdjson2py features a few extended control compared to protocol designer, detailed later. 
 # Input/Usage
-The pd2py receive JSON file input in two ways.
+The pdjson2py receive JSON file input in two ways.
 1. Published in Opentrons Protocol Library. Input fields are as below.
     1. **`JSON file`:** To upload JSON file. 
     2. **`Starting tip for left pipette (optional)`:** type=str, default="A1" 

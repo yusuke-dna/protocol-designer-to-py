@@ -35,6 +35,7 @@ def used_tiprack_parse_command(tiprack_assign=None) -> list:
     return starting_tip_well
 
 # Receive e.g. A1/E10 or C1 and returns {'left': 'A1', 'right': 'E10'} or {'left': 'C1', 'right': 'C1'}
+# This function should be updated to receive left="A1", right="E10" instead and return {'left': 'A1', 'right': 'E10'}
 def used_tiprack_parse(tiprack_assign=None) -> dict:        
     starting_tip_well = {}
     starting_tip_well['left'] = tiprack_assign.split('/')[0]
@@ -704,7 +705,7 @@ def nested_method_output(f, pdjson):
             raise Exception(f"{{str(sys.exc_info()[0]).split('.')[-1][:-2]}} in Step {{step}}. transfer-{{mode}}: {{e}}, line {{sys.exc_info()[2].tb_lineno}}")
 ''')
 
-def sort_well(wells, first_sort, second_sort) -> list:
+def sort_wells(wells, first_sort, second_sort) -> list:
     # reorder list based on first_sort and second_sort.
     if first_sort == None and second_sort == None:
         return wells
@@ -742,7 +743,7 @@ def otjson2py_command(filename: str, tiprack_assign=None, webhook_url=None) -> s
         used_tiprack = False
     else:
         used_tiprack = True
-        starting_tip_well = used_tiprack_parse_command(tiprack_assign)
+        starting_tip_well = used_tiprack_parse(tiprack_assign)
         
     try:
         with open(filename, 'r') as f:
@@ -792,7 +793,8 @@ def otjson2py_command(filename: str, tiprack_assign=None, webhook_url=None) -> s
         modules[key] = ""
 
     with open('output.py', 'w') as f:
-# header
+
+# Print header
         f.write('from opentrons import protocol_api\nimport json, urllib.request, math\n\n')
         f.write(f'metadata = {metadata}\n\n')
         if webhook_url != None:
@@ -800,9 +802,33 @@ def otjson2py_command(filename: str, tiprack_assign=None, webhook_url=None) -> s
             f.write("def send_to_slack(webhook_url, message):\n    data = {\n        'text': message,\n        'username': 'MyBot',\n        'icon_emoji': ':robot_face:'\n    }\n    data = json.dumps(data).encode('utf-8')\n\n    headers = {'Content-Type': 'application/json'}\n\n    req = urllib.request.Request(webhook_url, data, headers)\n    with urllib.request.urlopen(req) as res:\n        if res.getcode() != 200:\n            raise ValueError(\n                'Request to slack returned an error %s, the response is:\\n%s'\n                % (res.getcode(), res.read().decode('utf-8'))\n            )\n\n")
         f.write('def run(protocol: protocol_api.ProtocolContext):\n')
 
-# load labwares and modules
+# For every command...
         for i in range(len(pdjson['commands'])):
             command_step = pdjson['commands'][i]
+
+# Serial numbering for debug
+            if i%20 == 0 and i > 19:
+                f.write(f'\n# command no. {i}\n')
+
+# load pipettes
+            if command_step['commandType'] == 'loadPipette':
+                mount = command_step['params']['mount']
+                if tiprack_assign == 'auto' or used_tiprack == True:   # comparison "tiprack_assign == auto" is for backword compatibility and could be removed in future.
+                    tiprack_name = pdjson['designerApplication']['data']['pipetteTiprackAssignments'][command_step['params']['pipetteId']]
+                    tipracks = []
+                    for key, value in pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['labwareLocationUpdate'].items() :
+                        if key.split(':')[len(key.split(':'))-1] == tiprack_name :
+                            tipracks.append(labwares[key])
+                            tipracks_str = '[' + ']['.join(tipracks) + ']'
+                    ini_tiprack = tipracks[0]
+                    f.write(f"    pipette{i} = protocol.load_instrument(instrument_name='{pipettes_name[command_step['params']['pipetteId']]}', mount='{mount}',tip_racks={tipracks_str})\n")
+                    if used_tiprack == True:
+                        f.write(f"    pipette{i}.starting_tip = {ini_tiprack}.well('{starting_tip_well[mount]}')\n")
+                else:
+                    f.write(f"    pipette{i} = protocol.load_instrument(instrument_name='{pipettes_name[command_step['params']['pipetteId']]}', mount='{mount}')\n")
+                pipettes[command_step['params']['pipetteId']] = f"{mount}_pipette"
+
+# load labwares and modules
             if command_step['commandType'] == 'loadLabware':
                 if list(command_step['params']['location'].keys())[0] == 'slotName':
                     f.write(f"    labware{i} = protocol.load_labware(load_name='{labwares_name[command_step['params']['labwareId']]}', "
@@ -816,33 +842,7 @@ def otjson2py_command(filename: str, tiprack_assign=None, webhook_url=None) -> s
                 f.write(f"    module{i} = protocol.load_module(module_name='{modules_name[command_step['params']['moduleId']]}',"
                         f"location='{command_step['params']['location']['slotName']}')\n")
                 modules[command_step['params']['moduleId']] = f"module{i}"
-                
-# load pipettes
-        for i in range(len(pdjson['commands'])):
-            command_step = pdjson['commands'][i]
-            if command_step['commandType'] == 'loadPipette':
-                if tiprack_assign == 'auto' or used_tiprack == True:
-                    tiprack_name = pdjson['designerApplication']['data']['pipetteTiprackAssignments'][command_step['params']['pipetteId']]
-                    tipracks = []
-                    for key, value in pdjson['designerApplication']['data']['savedStepForms']['__INITIAL_DECK_SETUP_STEP__']['labwareLocationUpdate'].items() :
-                        if key.split(':')[len(key.split(':'))-1] == tiprack_name :
-                            tipracks.append(labwares[key])
-                            tipracks_str = '[' + ']['.join(tipracks) + ']'
-                    ini_tiprack = tipracks[0]
-                    f.write(f"    pipette{i} = protocol.load_instrument(instrument_name='{pipettes_name[command_step['params']['pipetteId']]}', mount='{command_step['params']['mount']}',tip_racks={tipracks_str})\n")
-                    if used_tiprack == True:
-                        f.write(f"    pipette{i}.starting_tip = {ini_tiprack}.well('{starting_tip_well[i]}')\n")
-                else:
-                    f.write(f"    pipette{i} = protocol.load_instrument(instrument_name='{pipettes_name[command_step['params']['pipetteId']]}', mount='{command_step['params']['mount']}')\n")
-                pipettes[command_step['params']['pipetteId']] = f"pipette{i}"
 
-# Commands
-        for i in range(len(pdjson['commands'])):
-            command_step = pdjson['commands'][i]
-# for debug
-            if i%20 == 0 and i > 19:
-                f.write(f'\n# command no. {i}\n')
-                
 # liquid handling
             if command_step['commandType'] == 'pickUpTip' and (tiprack_assign == 'auto' or used_tiprack == True):
                 f.write(f"    {pipettes[command_step['params']['pipetteId']]}.pick_up_tip()\n")
@@ -965,6 +965,7 @@ def otjson2py_command(filename: str, tiprack_assign=None, webhook_url=None) -> s
             f.write(f'    send_to_slack(webhook_url,"Your OT-2 protocol has just completed!")\n')
 
 # pdjson is a dictionary format data from Protocol Designer, apart from a special transfer-path option: 'reverse', a listed form of volume, aspirate_mmFromBottom and dispense_mmFromBottom, as well as wellOrder_first and wellOrder_second can be None. Mix has mix_airGap_checkbox and mix_airGap_volume. Thermocycler has extra thermocyclerFormType: 'thermocyclerHold' to enable incubation. 'sourceVolumes', 'destVolumes', and 'mixVolumes' are added to calculate offset.
+# otjson2py will be changed to csv2py in future.
 def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False) -> str:
     # Specifying starting well of the used tiprack.
     if tiprack_assign == None or tiprack_assign == 'auto' or tiprack_assign == 'A1/A1' or tiprack_assign == 'A1':
@@ -1138,8 +1139,8 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
     # moving liquid
     # the source liquid and destination liquid should be in each single labware.
             if ordered_step['stepType'] == 'moveLiquid':
-                sorted_aspirate_wells = sort_well(ordered_step['aspirate_wells'], ordered_step['aspirate_wellOrder_first'], ordered_step['aspirate_wellOrder_second'])
-                sorted_dispense_wells = sort_well(ordered_step['dispense_wells'], ordered_step['dispense_wellOrder_first'], ordered_step['dispense_wellOrder_second'])
+                sorted_aspirate_wells = sort_wells(ordered_step['aspirate_wells'], ordered_step['aspirate_wellOrder_first'], ordered_step['aspirate_wellOrder_second'])
+                sorted_dispense_wells = sort_wells(ordered_step['dispense_wells'], ordered_step['dispense_wellOrder_first'], ordered_step['dispense_wellOrder_second'])
                 if ordered_step['path'] == 'single' or ordered_step['path'] == 'reverse':   # reverse mode is original mode allowing disposal volume parameter
                     f.write(f"    liquid_handling(mode='transfer', ")
                 elif ordered_step['path'] == 'multiAspirate':
@@ -1207,7 +1208,7 @@ def otjson2py(filename: str, tiprack_assign=None, webhook_url=None, debug=False)
 
     # mixing liquid
             elif ordered_step['stepType'] == 'mix':
-                mix_wells = sort_well(ordered_step['wells'], ordered_step['mix_wellOrder_first'], ordered_step['mix_wellOrder_second'])
+                mix_wells = sort_wells(ordered_step['wells'], ordered_step['mix_wellOrder_first'], ordered_step['mix_wellOrder_second'])
                 f.write(f"    liquid_handling(mode='mix', pipette={pipettes[ordered_step['pipette']]}, repetitions={ordered_step['times']}, volume={ordered_step['volume']},\n        "   # Volume can be one of float or list of float, as same as official instrument.transfer() attribute. Tuple is no longer supported.
                         f"mix_labware={labwares[ordered_step['labware']]}, mix_wells={mix_wells},\n        ")
                 if ordered_step['mix_mmFromBottom'] != None:

@@ -8,7 +8,7 @@ For that purpose, the output python script is designed to be flexible for editin
 The code is consists of (1) Simple JSON to Python converter (`json2py()`), (2) JSON to CSV converter (`json2csv()`), (3) CSV to step dictionary converter (`csv2step()`), (4) step dictionary to Python converter (`step2py()`), (5) comprehensive `liquid_handling()` method (hard-copied to output Python file by `write_liquid_handling()`) and (6) miscellaneous methods and variables.
 
 ## Data Processing Flow Chart
-<img width="1344" alt="image" src="https://github.com/yusuke-dna/protocol-designer-to-py/assets/70700401/e8bc0747-c801-4548-b6fa-50839e6d1824">
+<img width="1344" alt="image" src="https://github.com/yusuke-dna/protocol-designer-to-py/assets/70700401/7317b51b-92b9-4ad3-a664-98808e91fc47">
 
 ### JSON file scenario (New Protocol Preparation)
 1. Design your own protocol using `Opentrons Protocol Designer` and export `JSON file`.

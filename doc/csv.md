@@ -15,7 +15,31 @@ As step 0, metadata, loading module, labware, and pipette information is convert
 3. Source Labware: key of pdjson['metadata'] (str)
 4. Source Slot: value of pdjson['metadata'] (str, for tag, value is in list format.)
 
-### 1-2. Load Pipettes
+### 1-2. Load Modules
+#### Source
+- pdjson['commands'][i]['param'] (pdjson['commands'][i]['commandType'] == 'loadModule')
+#### Column Definition
+0. Step#: 0 (integral)
+1. Step Type: "Initialize" (fixed string)
+2. Comment: "Load Module" (fixed string)
+3. Load Name: pdjson['commands'][i]['param']['model'] (str)
+4. Mount/Location pdjson['commands'][i]['param']['location']['slotName'] (str, '1'-'11')
+5. ID: pdjson['commands'][i]['param']['moduleId'] (str)   # Used to specify location of labware
+
+### 1-3. Load Labware
+Loading labware follows module loading, as a part of labware is stacked on the module.
+#### Source
+- pdjson['commands'][i]['param'] (pdjson['commands'][i]['commandType'] == 'loadLabware')
+#### Column Definition
+0. Step#: 0 (integral)
+1. Step Type: "Initialize" (fixed string)
+2. Comment: "Load Labware" (fixed string)
+3. Load Name: pdjson['commands'][i]['param']['loadName'] (str)
+4. Mount/Location: pdjson['commands'][i]['param']['location']['slotName'] (str, '1'-'11') or pdjson['commands'][i]['param']['location']['moduleId'] (str, defined in advance in column 5)
+5. ID: pdjson['commands'][i]['param']['labwareId'] (str)   # Used to specify location of stacked labware
+
+### 1-4. Load Pipettes
+Loading pipette follows labware loading, as tipracks have to be loaded before pipettes.
 #### Source
 - pdjson['commands'][i]['param'] (pdjson['commands'][i]['commandType'] == 'loadPipette')
 - pipette: dict (key: pipetteId, value: mount) # used to convert pipette ID, specfied in liquid handling steps, to pipette object.
@@ -27,28 +51,6 @@ As step 0, metadata, loading module, labware, and pipette information is convert
 4. Mount/Location: pdjson['commands'][i]['param']['mount'] (str, 'left' or 'right')
 5. ID: pdjson['commands'][i]['param']['pipetteId'] (str)   # Used to specify location of pipette
 6. Tiprack: pdjson['designerApplication']['data']['pipettesTiprackAssignments'][{pdjson['commands'][i]['param']['pipetteId']}] (str)
-
-### 1-3. Load Modules
-#### Source
-- pdjson['commands'][i]['param'] (pdjson['commands'][i]['commandType'] == 'loadModule')
-#### Column Definition
-0. Step#: 0 (integral)
-1. Step Type: "Initialize" (fixed string)
-2. Comment: "Load Module" (fixed string)
-3. Load Name: pdjson['commands'][i]['param']['model'] (str)
-4. Mount/Location pdjson['commands'][i]['param']['location']['slotName'] (str, '1'-'11')
-5. ID: pdjson['commands'][i]['param']['moduleId'] (str)   # Used to specify location of labware
-
-### 1-4. Load Labware
-#### Source
-- pdjson['commands'][i]['param'] (pdjson['commands'][i]['commandType'] == 'loadLabware')
-#### Column Definition
-0. Step#: 0 (integral)
-1. Step Type: "Initialize" (fixed string)
-2. Comment: "Load Labware" (fixed string)
-3. Load Name: pdjson['commands'][i]['param']['loadName'] (str)
-4. Mount/Location: pdjson['commands'][i]['param']['location']['slotName'] (str, '1'-'11') or pdjson['commands'][i]['param']['location']['moduleId'] (str, defined in advance in column 5)
-5. ID: pdjson['commands'][i]['param']['labwareId'] (str)   # Used to specify location of stacked labware
 
 
 ## Column Definition for transfer

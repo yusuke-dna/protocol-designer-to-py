@@ -5,7 +5,7 @@ protocol-designer-to-py, or `pdjson2py`, is to convert JSON file exported from t
 
 For that purpose, the output python script is designed to be flexible for editing and is equiped with user-friendly variables and comments ready for edit.
 
-The code is consists of (1) Simple JSON to Python converter (`json2py()`), (2) JSON to CSV converter (`json2csv()`), (3) CSV to step dictionary converter (`csv2step()`), (4) step dictionary to Python converter (`step2py()`), (5) comprehensive `liquid_handling()` method and (6) miscellaneous methods and variables.
+The code is consists of (1) Simple JSON to Python converter (`json2py()`), (2) JSON to CSV converter (`json2csv()`), (3) CSV to step dictionary converter (`csv2step()`), (4) step dictionary to Python converter (`step2py()`), (5) comprehensive `liquid_handling()` method (hard-copied to output Python file by `write_liquid_handling()`) and (6) miscellaneous methods and variables.
 
 ## Data Processing Flow Chart
 <img width="1344" alt="image" src="https://github.com/yusuke-dna/protocol-designer-to-py/assets/70700401/e8bc0747-c801-4548-b6fa-50839e6d1824">
@@ -47,13 +47,20 @@ Detail of CSV file is described in lower section.
 ## Top level
 - import libraries
 - parse arguments
-    - JSON file or CSV file
-    - Starting tip for left pipette (optional, default="A1")
-    - Starting tip for right pipette (optional, default="A1")
-    - Slack Notification Webhook URL (optional, default=None)
-    - mode (optional, default="step")
+    - `input_filename` # JSON file or CSV file
+    - `left` # Starting tip for left pipette (optional, default="A1")
+    - `right` # Starting tip for right pipette (optional, default="A1")
+    - `webhook_url` # Slack Notification Webhook URL (optional, default=None)
+    - `mode` # Mode selection (optional, default="step", one of ["step", "command", "debug"])
+- set global variables
+    - `tiprack_assign` = used_tiprack_parse(left, right)
 - If primary argument is JSON file:
-    - load JSON file as dict
+    - load JSON file as dict, `pdjson`
+    - set global variables
+      - `default_aspirate_offset` = pdjson['designerApplication']['data']['defaultValues']['aspirate_mmFromBottom']
+      - `default_dispense_offset` = pdjson['designerApplication']['data']['defaultValues']['dispense_mmFromBottom']
+      - `default_touch_tip_offset` = pdjson['designerApplication']['data']['defaultValues']['touchTip_mmFromTop']
+      - `default_blowout_offset` = pdjson['designerApplication']['data']['defaultValues']['blowout_mmFromTop']
     - if mode is "command":
         - `json2py()` to generate Python script, end.
     - else:
@@ -61,7 +68,12 @@ Detail of CSV file is described in lower section.
         - `csv2step()` to load CSV file as dict
         - `step2py()` to generate Python script, end.
 - else if primary argument is CSV file:
-    - `csv2step()` to load CSV file as dict
+    - `csv2step()` to load CSV file as dict, `step_dict`
+    - set global variables
+      - `default_aspirate_offset` = step_dict['defaultValues']['aspirate_offset']
+      - `default_dispense_offset` = step_dict['defaultValues']['dispense_offset']
+      - `default_touch_tip_offset` = step_dict['defaultValues']['touch_tip_offset']
+      - `default_blowout_offset` = step_dict['defaultValues']['blowout_offset']
     - `step2py()` to generate Python script, end.
 ## json2py()
 Code block for command mode. `commands` object of JSON file is used to generate python script. The script is not organized and is not recommended for editing.
@@ -129,7 +141,7 @@ def json2py(filename: str, left="A1", right="A1", webhook_url=None) -> str:
         modules_name[key] = module_dict[str(value['model'])]
         modules[key] = ""
 
-    print_header('output.py', metadata, filename, webhook_url) # check later
+    write_header('output.py', metadata, filename, webhook_url) # check later
 
     with open('output.py', 'w') as f:
         f.write('def run(protocol: protocol_api.ProtocolContext):\n')
@@ -315,12 +327,15 @@ Code block for converting JSON file to CSV file. The CSV file is designed to be 
 - CSV file in str, with file name `[filename of json without extension].csv`.
 ### CSV structure
 See [another file].
+
+
 ## csv2step()
 Code block for converting CSV file to dict form, similar to command object of JSON file.The Python dictionary is used as an intermediate data structure.
 ### Input
 - filename (CSV file)
 ### Output
 - step_dict (dict format object)
+
 ## step2py()
 Code block for converting CSV file to Python script. The Python script is designed to be human-readable and suitable for used as a template.
 ### Input
@@ -332,7 +347,7 @@ Code block for converting CSV file to Python script. The Python script is design
 ### Output
 - Python script in str, with file name `[filename of csv without extension].py`.
 
-## print_header()
+## write_header()
 Common script block of protocol.py and protocol_command.py is printed by this method.
 ### Input
 - output_filename (str)
@@ -342,7 +357,7 @@ Common script block of protocol.py and protocol_command.py is printed by this me
 - Python script in str, with `output_filename`. Main script block continues by `json2py()` or `step2py` method.
 ### Sample Code:
 ```python
-def print_header(output_filename, metadata, webhook_url):
+def write_header(output_filename, metadata, webhook_url):
     with open(output_filename, 'w') as f:
 
 # Print header
@@ -386,6 +401,15 @@ def send_to_slack(webhook_url, message):
 def beep_alarm(audio_path):
     # Code here
 ```
+
+## write_liquid_handling()
+Comprehensive `liquid_handling()` method is printed by this method. The method is hard-copied to output Python file by `step2py()` method. Command mode does not use it.
+### Input
+- aspirate_offset (float)
+- dispense_offset (float)
+- touch_tip_offset (float)
+- blowout_offset (float)
+### Output
 
 ## Miscellaneous methods in pdjson2py
 
@@ -466,31 +490,21 @@ def sort_wells(wells, first_sort, second_sort) -> list:
             return wells
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-# Input/Usage
+# How to use pdjson2py
 The pdjson2py receive JSON file input in two ways.
 1. Published in Opentrons Protocol Library. Input fields are as below.
-    1. **`JSON file`:** To upload JSON file. 
+    1. **`JSON file or CSV file`:** To upload JSON file or CSV file. 
     2. **`Starting tip for left pipette (optional)`:** type=str, default="A1" 
     3. **`Starting tip for right pipette (optional)`:** type=str, default="A1"
     4. **`Slack Notification Webhook URL (optional)`:** type=str, default=""
-2. Commandline input. A positional argument and keyword arguments as below are accepted. Help comments are just for example.
-    1. Primary positional argument. help="The JSON file exported from Protocol Designer."
-    2. **`left`:** default="A1", help="For used tiprack reuse of left pipette, input e.g. 'C1'. Not specified indicates all tipracks are filled."
-    3. **`right`:** default="A1", help="For used tiprack reuse of right pipette, input e.g. 'E10'. Not specified indicates all tipracks are filled."
+    5. **`Mode (optional)`:** type=str, default="step", choices=["step", "command", "debug"] 
+        - If "command" is selected and the input file is CSV, default "step" mode is applied. (CSV file does not have information for command mode.)
+2. Command line input. A positional argument and keyword arguments as below are accepted. Help comments are just for example.
+    1. Primary positional argument. help="The JSON file exported from Protocol Designer or the CSV file generated by pdjson2py."
+    2. **`left`:** default="A1", help="For used tiprack reuse of left pipette, input first filled well, e.g. 'C1'. Not specified indicates all tipracks are filled."
+    3. **`right`:** default="A1", help="For used tiprack reuse of right pipette, input first filled well, e.g. 'E10'. Not specified indicates all tipracks are filled."
     4. **`url`:** default="", help="Slack Webhook URL here like 'https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]' to enable notification via Slack.
-    5. **`source`:** default="step", help="Specify 'command' to enable command mode for debugging. 'commands' object is used to generate python script. By default, GUI equivalent steps in 'designerApplication' obejct is used."
+    5. **`mode`:** default="step", help="Specify 'command' to enable command mode for debugging. 'commands' object is used to generate python script. By default, GUI equivalent steps in 'designerApplication' obejct is used."
 # Supported Protocol Options (Object in JSON file)
 ## Default Step Mode (designerApplication/data/savedStepForms/[stepId]/**stepType:_____**)
 ### Transfer (stepType:moveLiquid*)

@@ -33,7 +33,7 @@ The code is consists of (1) simple logical substitution to Openrons API, (2) Ope
 The protocol of liquid handling is stored in JSON file in two different ways. Simpler one is in `commands` object. Command mode traces and literally translates commands to Python API step by step. Serial number is marked every 10 commands for readability.
 
 ## Debug mode (mutually exclusive with Command mode)
-This mode increase the comments in the generated Python script. It is useful for debugging and understanding the protocol.
+This mode increases the comments in the generated Python script. It is useful for debugging and understanding the protocol.
 
 ## CSV file
 CSV file is an intermediate file format to describe the protocol. It is generated from JSON file and can be used as an input for pdjson2py. The CSV file is designed to be human-readable and editable. The CSV file is also useful for debugging and understanding the protocol.
@@ -46,7 +46,7 @@ Detail of CSV file is described in lower section.
     - JSON file or CSV file
     - Starting tip for left pipette (optional, default="A1")
     - Starting tip for right pipette (optional, default="A1")
-    - Slack Notification Webhook URL (optional)
+    - Slack Notification Webhook URL (optional, default=None)
     - mode (optional, default="step")
 - evaluate the extension of primary argument
     - if JSON:
@@ -56,11 +56,11 @@ Detail of CSV file is described in lower section.
         - else:
             - json2csv()
             - csv2py()
-    - if CSV
+    - if CSV:
         - load CSV file as dict
         - csv2py()
 ## json2py()
-For command mode. `commands` object of JSON file is used to generate python script. The script is not organized and is not recommended for editing.
+Code block for command mode. `commands` object of JSON file is used to generate python script. The script is not organized and is not recommended for editing.
 ### Input
 filename (JSON file), left (optional), right (optional), webhook_url (optional)
 ### Output
@@ -68,7 +68,7 @@ Python script in str
 ### Sample Code
 ```python
 
-def json2py(filename: str, left=None, right=None, webhook_url=None) -> str:
+def json2py(filename: str, left="A1", right="A1", webhook_url=None) -> str:
 
     # Specifying starting well of the used tiprack.
     if left == "A1" and right == "A1":
@@ -91,7 +91,7 @@ def json2py(filename: str, left=None, right=None, webhook_url=None) -> str:
         if value is None:
             metadata[key] = "n/a"
     metadata['tags'] = str(metadata['tags'])
-    metadata['apiLevel'] = '2.14'
+    metadata['apiLevel'] = '2.16'
     module_dict = {
         'temperatureModuleV2':'temperature module gen2',
         'magneticModuleV2':'magnetic module gen2',

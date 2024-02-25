@@ -39,7 +39,7 @@ More organized one is in `designerApplication` object, as displayed in Protocol 
 Step mode with detailed comments in the generated Python script. It is useful for debugging and understanding the protocol.
 
 ## CSV file
-CSV file is an intermediate file format to describe the protocol. It is conveted from JSON file, particulary `designerApplication` object and can be used as an input for pdjson2py. The CSV file is designed to be human-readable and editable. The CSV file is also useful for debugging and understanding the protocol.
+CSV file is an intermediate file format to describe the protocol. It is converted from JSON file, particulary `designerApplication` object and can be used as an input for pdjson2py. The CSV file is designed to be human-readable and editable. The CSV file is also useful for debugging and understanding the protocol.
 Detail of CSV file is described in lower section.
 # Script Structure
 ## Top level
@@ -50,23 +50,25 @@ Detail of CSV file is described in lower section.
     - Starting tip for right pipette (optional, default="A1")
     - Slack Notification Webhook URL (optional, default=None)
     - mode (optional, default="step")
-- evaluate the extension of primary argument
-    - if JSON:
-        - load JSON file as dict
-        - if mode is "command":
-            - json2py()
-        - else:
-            - json2csv()
-            - csv2py()
-    - if CSV:
-        - load CSV file as dict
-        - csv2py()
+- If primary argument is JSON file:
+    - load JSON file as dict
+    - if mode is "command":
+        - `json2py()` to generate Python script, end.
+    - else:
+        - `json2csv()` to generate intermediate CSV file
+        - `csv2py()` to generate Python script, end.
+- else if primary argument is CSV file:
+    - `csv2dict()` to load CSV file as dict
+    - `csv2py()` to generate Python script, end.
 ## json2py()
 Code block for command mode. `commands` object of JSON file is used to generate python script. The script is not organized and is not recommended for editing.
 ### Input
-filename (JSON file), left (optional), right (optional), webhook_url (optional).
+- filename (JSON file)
+- left (optional, default="A1")
+- right (optional, default="A1")
+- webhook_url (optional, default=None)
 ### Output
-Python script in str, with file name `[filename of json]_protocol_command.py`.
+- Python script in str, with file name `[filename of json without extension]_command.py`.
 ### Sample Code
 ```python
 
@@ -301,47 +303,89 @@ def json2py(filename: str, left="A1", right="A1", webhook_url=None) -> str:
 ## json2csv()
 Code block for converting JSON file to CSV file. The CSV file is designed to be human-readable and editable.
 ### Input
-filename (JSON file), left (optional), right (optional), webhook_url (optional), mode (optional, default="step").
+- filename (JSON file)
+- left (optional, default="A1")
+- right (optional, default="A1")
+- webhook_url (optional, default=None)
+- mode (optional, default="step", either "step" or "debug")
 ### Output
-
+- CSV file in str, with file name `[filename of json without extension].csv`.
+### CSV structure
+See [another file].
 ## csv2py()
+Code block for converting CSV file to Python script. The Python script is designed to be human-readable and suitable for used as a template.
 ### Input
-## Miscellaneous methods
-### print_header()
-Sample Code:
+- filename (CSV file)
+- webhook_url (optional, default=None)
+### Output
+- Python script in str, with file name `[filename of csv without extension].py`.
+## csv2step()
+Code block for converting CSV file to dict form, similar to command object of JSON file.The Python dictionary is used as an intermediate data structure.
+### Input
+- filename (CSV file)
+### Output
+- pddict
+
+## print_header()
+Common script block of protocol.py and protocol_command.py is printed by this method.
+### Input
+- output_filename (str)
+- metadata (dict)
+- webhook_url (str)
+### Output
+- Python script in str, with `output_filename`. Main script block continues by pdjson2py or csv2py method.
+### Sample Code:
 ```python
-def print_header(filename, metadata, webhook_url):
-    with open('output.py', 'w') as f:
+def print_header(output_filename, metadata, webhook_url):
+    with open(output_filename, 'w') as f:
 
 # Print header
         f.write(f'''
-        from opentrons import protocol_api
-        import json, time, math, sys, urllib.request
 
-        metadata = {metadata}
-        webhook_url = {webhook_url}
-
-        def send_to_slack(webhook_url, message):
-            data = {{
-                'text': message,
-                'username': 'MyBot',
-                'icon_emoji': ':robot_face:'
-            }}
-            data = json.dumps(data).encode('utf-8')
-
-            headers = {{'Content-Type': 'application/json'}}
-
-            req = urllib.request.Request(webhook_url, data, headers)
-            with urllib.request.urlopen(req) as res:
-                if res.getcode() != 200:
-                    raise ValueError(
-                        'Request to slack returned an error %s, the response is:\n%s'
-                        % (res.getcode(), res.read().decode('utf-8')))
-        ''')
+        ...(inside quate is extracted below)...
+ 
+        '''
 ```
+Contents are as below. Note that it is in f-string format, with variable `metadata` and `webhook_url` are used.
+```python
+from opentrons import protocol_api
+import json, time, math, sys, urllib.request, subprocess, types
+
+metadata = {json.dumps(metadata, indent=4)}
+left = {left} # starting tip for left pipette for overwriting
+right = {right} # starting tip for right pipette for overwriting
+webhook_url = {webhook_url}
+audio_path = '/etc/audio/alarm.mp3' # hard-coded path to audio file.
+
+# Send notifications to slack 
+def send_to_slack(webhook_url, message):
+    data = {{
+        'text': message,
+        'username': 'MyBot',
+        'icon_emoji': ':robot_face:'
+    }}
+    data = json.dumps(data).encode('utf-8')
+
+    headers = {{'Content-Type': 'application/json'}}
+
+    req = urllib.request.Request(webhook_url, data, headers)
+    with urllib.request.urlopen(req) as res:
+        if res.getcode() != 200:
+            raise ValueError(
+                'Request to slack returned an error %s, the response is:\n%s'
+                % (res.getcode(), res.read().decode('utf-8')))
+
+# Beep alarm according to this document: https://support.opentrons.com/s/article/How-to-play-sounds-out-of-the-OT-2
+# Error handling is required. If no file found in audio_path, return pass.
+def beep_alarm(audio_path):
+    # Code here
+```
+
+## Miscellaneous methods in pdjson2py
 
 ### bottom2top()
 Convert between "height from top of the well" and "height from bottom of the well". It is used for touchTip configuration in command mode.
+
 Sample code:
 ```python
 def bottom2top(json_dict: dict, labware_name_full: str, well_name: str, v_mm:float) -> float:
@@ -354,7 +398,7 @@ def bottom2top(json_dict: dict, labware_name_full: str, well_name: str, v_mm:flo
 Generate dictionary of starting tip well from input string. If input string is missing alphabetic part, calculate it based on numeric part assuming the labware has eight rows.
 sample code:
 ```python
-def used_tiprack_parse(left=None, right=None) -> dict:
+def used_tiprack_parse(left='A1', right='A1') -> dict:
     starting_tip_well = {'left': '', 'right': ''}
     
     # Assign left and right values, use left value for right if right is None
@@ -381,6 +425,7 @@ def used_tiprack_parse(left=None, right=None) -> dict:
 
 ### sort_wells()
 Wells are sorted based on first_sort and second_sort.
+
 Sample code:
 ```python
 def sort_wells(wells, first_sort, second_sort) -> list:

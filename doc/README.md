@@ -7,7 +7,7 @@ For that purpose, the output python script is designed to be flexible for editin
 
 The code is consists of (1) simple logical substitution to Openrons API, (2) Opentrons API naming and loading pipettes, liquid, tipracks, modules, and labware according to Protocol Designer configuration, (3) comprehensive `liquid_handling()` method and (4) miscellaneous methods and variables, (3) and (4) are to be hard-copied to generated Python file.
 
-## Data Handling Flow Chart
+## Data Processing Flow Chart
 <img width="1344" alt="image" src="https://github.com/yusuke-dna/protocol-designer-to-py/assets/70700401/e8bc0747-c801-4548-b6fa-50839e6d1824">
 
 ### JSON file scenario (New Protocol Preparation)
@@ -18,7 +18,7 @@ The code is consists of (1) simple logical substitution to Openrons API, (2) Ope
 5. In `pdjson2py`, 
     1. `json2csv()` converts `JSON file` to `CSV file`. The CSV file is available from the form link (`Web app`) or generated in the directly (`CLI`). The CSV file name is `protocol.csv`.
     2. `json2py()` converts `JSON file` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `protocol_command.py`.
-6. In `pdjson2py`, `csv2py()` converts `CSV file` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `protocol.py`.
+6. In `pdjson2py`, `csv2py()` converts `CSV file` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `protocol.py`. The user may modify configurations or add logics in the Python script.
 7. Run the Python script in `Opentrons App`.
 
 ### CSV file scenario (Edit Existing Protocol)
@@ -27,19 +27,20 @@ The code is consists of (1) simple logical substitution to Openrons API, (2) Ope
 3. In `pdjson2py`, if input file is `CSV file`, skip step 4-5 and go to step 6. If input file is `JSON file`, go to step 4.
 4. Skipped
 5. Skipped
-6. In `pdjson2py`, `csv2py()` converts `CSV file` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `protocol.py`.
+6. In `pdjson2py`, `csv2py()` converts `CSV file` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `protocol.py`. The user may modify configurations or add logics in the Python script.
 7. Run the Python script in `Opentrons App`.
 
-## Command mode (JSON file input is required)
+## Modes
+### Command mode (JSON file input is required)
 The protocol of liquid handling is stored in JSON file in two different ways. Simpler one is in `commands` object. Command mode traces and literally translates commands to Python API step by step. Serial number is marked every 10 commands for readability.
-
-## Debug mode (mutually exclusive with Command mode)
-This mode increases the comments in the generated Python script. It is useful for debugging and understanding the protocol.
+### Step mode (default, both JSON and CSV file input are available)
+More organized one is in `designerApplication` object, as displayed in Protocol Designer web app. For readability, every step number and step notes are inserted as comments.
+### Debug mode (both JSON and CSV file input are available)
+Step mode with detailed comments in the generated Python script. It is useful for debugging and understanding the protocol.
 
 ## CSV file
-CSV file is an intermediate file format to describe the protocol. It is generated from JSON file and can be used as an input for pdjson2py. The CSV file is designed to be human-readable and editable. The CSV file is also useful for debugging and understanding the protocol.
+CSV file is an intermediate file format to describe the protocol. It is conveted from JSON file, particulary `designerApplication` object and can be used as an input for pdjson2py. The CSV file is designed to be human-readable and editable. The CSV file is also useful for debugging and understanding the protocol.
 Detail of CSV file is described in lower section.
-
 # Script Structure
 ## Top level
 - import libraries
@@ -63,9 +64,9 @@ Detail of CSV file is described in lower section.
 ## json2py()
 Code block for command mode. `commands` object of JSON file is used to generate python script. The script is not organized and is not recommended for editing.
 ### Input
-filename (JSON file), left (optional), right (optional), webhook_url (optional)
+filename (JSON file), left (optional), right (optional), webhook_url (optional).
 ### Output
-Python script in str
+Python script in str, with file name `[filename of json]_protocol_command.py`.
 ### Sample Code
 ```python
 
@@ -123,14 +124,9 @@ def json2py(filename: str, left="A1", right="A1", webhook_url=None) -> str:
         modules_name[key] = module_dict[str(value['model'])]
         modules[key] = ""
 
-    with open('output.py', 'w') as f:
+    print_header('output.py', metadata, filename, webhook_url) # check later
 
-# Print header
-        f.write('from opentrons import protocol_api\nimport json, urllib.request, math\n\n')
-        f.write(f'metadata = {metadata}\n\n')
-        if webhook_url != None:
-            f.write(f'webhook_url = "{webhook_url}"\n\n')
-            f.write("def send_to_slack(webhook_url, message):\n    data = {\n        'text': message,\n        'username': 'MyBot',\n        'icon_emoji': ':robot_face:'\n    }\n    data = json.dumps(data).encode('utf-8')\n\n    headers = {'Content-Type': 'application/json'}\n\n    req = urllib.request.Request(webhook_url, data, headers)\n    with urllib.request.urlopen(req) as res:\n        if res.getcode() != 200:\n            raise ValueError(\n                'Request to slack returned an error %s, the response is:\\n%s'\n                % (res.getcode(), res.read().decode('utf-8'))\n            )\n\n")
+    with open('output.py', 'w') as f:
         f.write('def run(protocol: protocol_api.ProtocolContext):\n')
 
 # For every command...
@@ -303,11 +299,47 @@ def json2py(filename: str, left="A1", right="A1", webhook_url=None) -> str:
 ```
 
 ## json2csv()
+Code block for converting JSON file to CSV file. The CSV file is designed to be human-readable and editable.
 ### Input
+filename (JSON file), left (optional), right (optional), webhook_url (optional), mode (optional, default="step").
+### Output
 
 ## csv2py()
 ### Input
 ## Miscellaneous methods
+### print_header()
+Sample Code:
+```python
+def print_header(filename, metadata, webhook_url):
+    with open('output.py', 'w') as f:
+
+# Print header
+        f.write(f'''
+        from opentrons import protocol_api
+        import json, time, math, sys, urllib.request
+
+        metadata = {metadata}
+        webhook_url = {webhook_url}
+
+        def send_to_slack(webhook_url, message):
+            data = {{
+                'text': message,
+                'username': 'MyBot',
+                'icon_emoji': ':robot_face:'
+            }}
+            data = json.dumps(data).encode('utf-8')
+
+            headers = {{'Content-Type': 'application/json'}}
+
+            req = urllib.request.Request(webhook_url, data, headers)
+            with urllib.request.urlopen(req) as res:
+                if res.getcode() != 200:
+                    raise ValueError(
+                        'Request to slack returned an error %s, the response is:\n%s'
+                        % (res.getcode(), res.read().decode('utf-8')))
+        ''')
+```
+
 ### bottom2top()
 Convert between "height from top of the well" and "height from bottom of the well". It is used for touchTip configuration in command mode.
 Sample code:
@@ -385,11 +417,11 @@ def sort_wells(wells, first_sort, second_sort) -> list:
 
 
 
- The script is generated by tracing commands in `commands` object. The script is not organized and is not recommended for editing.
 
-Step mode (default)
-More organized one is in `designerApplication` object, as displayed in Protocol Designer web app. For readability, every step number and step notes are inserted as comments.
-Step mode of pdjson2py features a few extended control compared to protocol designer, detailed later. 
+
+
+
+
 
 
 

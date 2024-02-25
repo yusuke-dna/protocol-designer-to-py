@@ -8,7 +8,8 @@ For that purpose, the output python script is designed to be flexible for editin
 The code is consists of (1) simple logical substitution to Openrons API, (2) Opentrons API naming and loading pipettes, liquid, tipracks, modules, and labware according to Protocol Designer configuration, (3) comprehensive `liquid_handling()` method and (4) miscellaneous methods and variables, (3) and (4) are to be hard-copied to generated Python file.
 
 ## Data Handling Flow Chart
-[scheme image]
+<img width="1344" alt="image" src="https://github.com/yusuke-dna/protocol-designer-to-py/assets/70700401/e8bc0747-c801-4548-b6fa-50839e6d1824">
+
 ### JSON file scenario (New Protocol Preparation)
 1. Design your own protocol using `Opentrons Protocol Designer` and export `JSON file`.
 2. Input `JSON file` to `pdjson2py` with optional parameters via `Opentrons Protocol Library (Web app)` or `Command Line Interface (CLI)`.

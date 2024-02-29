@@ -5,6 +5,11 @@ The CSV file is a sort of composite of multiple colomn rules, to express the pro
 # Conversion Logic
 ## 1. Convert metadata and load pipette, labware, and module information
 As step 0, metadata, loading module, labware, and pipette information is converted to CSV. 
+|Col. 0|Col. 1|Col. 2|Col. 3|Col. 4|Col. 5|Col. 6|
+|---|---|---|---|---|---|---|
+|Step#|Step Type|Comment|Load Name|Mount/Location|ID|Tiprack|
+* Note that this column label is not printed in the csv file.
+
 ### 1-1. Metadata
 #### Source
 - pdjson['metadata']
@@ -13,9 +18,22 @@ As step 0, metadata, loading module, labware, and pipette information is convert
 1. Step Type: "Initialize" (fixed string)
 2. Comment: "Metadata" (fixed string)
 3. Source Labware: key of pdjson['metadata'] (str)
-4. Source Slot: value of pdjson['metadata'] (str, for tag, value is in list format.)
+4. Source Slot: value of pdjson['metadata'] (str, for `tag`, value is in list format.)
+### 1-2. Default values
+#### Source
+- pdjson['designerApplication']['data']['defaultValues']
+#### Column Definition
+0. Step#: 0 (integral)
+1. Step Type: "Initialize" (fixed string)
+2. Comment: "Metadata" (fixed string)
+3. Source Labware: simplified keys according to key of pdjson['designerApplication']['data']['defaultValues']:
+    - `aspirate_mmFromBottom` -> "aspirate_offset"
+    - `dispense_mmFromBottom` -> "dispense_offset"
+    - `touchTip_mmFromTop` -> "touch_tip_offset"
+    - `blowout_mmFromTop` -> "blowout_offset"
+4. Source Slot: value of pdjson['designerApplication']['data']['defaultValues'] (float)
 
-### 1-2. Load Modules
+### 1-3. Load Modules
 #### Source
 - pdjson['commands'][i]['param'] (pdjson['commands'][i]['commandType'] == 'loadModule')
 #### Column Definition
@@ -26,7 +44,7 @@ As step 0, metadata, loading module, labware, and pipette information is convert
 4. Mount/Location pdjson['commands'][i]['param']['location']['slotName'] (str, '1'-'11')
 5. ID: pdjson['commands'][i]['param']['moduleId'] (str)   # Used to specify location of labware
 
-### 1-3. Load Labware
+### 1-4. Load Labware
 Loading labware follows module loading, as a part of labware is stacked on the module.
 #### Source
 - pdjson['commands'][i]['param'] (pdjson['commands'][i]['commandType'] == 'loadLabware')
@@ -38,7 +56,7 @@ Loading labware follows module loading, as a part of labware is stacked on the m
 4. Mount/Location: pdjson['commands'][i]['param']['location']['slotName'] (str, '1'-'11') or pdjson['commands'][i]['param']['location']['moduleId'] (str, defined in advance in column 5)
 5. ID: pdjson['commands'][i]['param']['labwareId'] (str)   # Used to specify location of stacked labware
 
-### 1-4. Load Pipettes
+### 1-5. Load Pipettes
 Loading pipette follows labware loading, as tipracks have to be loaded before pipettes.
 #### Source
 - pdjson['commands'][i]['param'] (pdjson['commands'][i]['commandType'] == 'loadPipette')
@@ -52,8 +70,11 @@ Loading pipette follows labware loading, as tipracks have to be loaded before pi
 5. ID: pdjson['commands'][i]['param']['pipetteId'] (str)   # Used to specify location of pipette
 6. Tiprack: pdjson['designerApplication']['data']['pipettesTiprackAssignments'][{pdjson['commands'][i]['param']['pipetteId']}] (str)
 
+## 2-1. Column Definition for transfer
+From step 1 to the end, the following column definition is used for transfer steps.
+|Col. 0|Col. 1|Col. 2|Col. 3|Col. 4|Col. 5|Col. 6|Col. 7|Col. 8|Col. 9|Col. 10|Col. 11|Col. 12|Col. 13|Col. 14|Col. 15|Col. 16|Col. 17|Col. 18|Col. 19|Col. 20|Col. 21|Col. 22|Col. 23|Col. 24|Col. 25|Col. 26|Col. 27|
 
-## Column Definition for transfer
+
 
 0. Step# (Integral serial, shown in generated protocol)
     - list index of pdjson['designerApplication']['data']['orderedStepIds][list index] storing stepId + 1 (starting from 1)

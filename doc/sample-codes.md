@@ -110,6 +110,9 @@ def json2py(filename: str, left="A1", right="A1", webhook_url=None) -> str:
                 f.write(f"    module{i} = protocol.load_module(module_name='{modules_name[command_step['params']['moduleId']]}',"
                         f"location='{command_step['params']['location']['slotName']}')\n")
                 modules[command_step['params']['moduleId']] = f"module{i}"
+# load liquid
+            elif command_step['commandType'] == 'loadLiquid':
+                # Code for Load liquid here
 
 # liquid handling
             if command_step['commandType'] == 'pickUpTip' and (tiprack_assign == 'auto' or used_tiprack == True):
@@ -210,6 +213,7 @@ def json2py(filename: str, left="A1", right="A1", webhook_url=None) -> str:
                     steps.append(step)
                 steps = str(steps)
                 f.write(f"    {modules[command_step['params']['moduleId']]}.execute_profile(steps={steps},repetitions=1,block_max_volume={command_step['params']['blockMaxVolumeUl']})\n")
+
 # other control      
             elif command_step['commandType'] == 'delay' and command_step['params'].get('seconds') == None :
                 message = str(command_step['params'].get('message'))
@@ -223,9 +227,10 @@ def json2py(filename: str, left="A1", right="A1", webhook_url=None) -> str:
                     f.write(')\n')
                 else:
                     f.write(f", msg='{message}')\n")
+            elif command_step['commandType'] == 'moveLabware':
+                # Code for labware relocation here
             elif command_step['commandType'] == 'loadLiquid' or command_step['commandType'] == 'loadPipette' or command_step['commandType'] == 'loadLabware' or command_step['commandType'] == 'loadModule':
-                # loading liquid, begins from API 2.14 is not supported.
-                None
+                None    # Thery are already handled above
             else:
                 f.write(f"not parsed: {command_step['commandType']}, {i}\n")
 

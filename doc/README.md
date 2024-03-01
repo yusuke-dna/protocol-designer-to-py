@@ -1,11 +1,11 @@
 # Documents for new version of pdjson2py
-The content is under preparation for future update. Latest version, utilising Step instead of Command of JSON file is available as default setting. For debug or specific purpose, command mode is available in `command` mode.
+The content is under preparation for future update. Latest version, utilising Step instead of Command of JSON file is available as default setting. For debug or specific purpose, command mode is available with `command` option.
 # Overview
-protocol-designer-to-py, or `pdjson2py`, is to convert JSON file exported from the Opentrons Protocol Designer (ver. 8.01) into Python script for Opentrons Python API 2.16. `pdjson2py` only supports OT-2, for now. The generated python script or CSV file will be used as a template of users' in-house protocol coding (e.g. introducing logics or loop, change pipetting parameters), to minimize users' coding efforts and to avoid human errors.
+protocol-designer-to-py, or `pdjson2py`, is to convert JSON file exported from the Opentrons Protocol Designer (ver. 8.01) into Python script for Opentrons Python API 2.16. `pdjson2py` only supports OT-2, for now. The generated python script (`.py`) or step file (`.csv`) will be used as a template of users' in-house protocol coding (e.g. introducing logics or loop, change pipetting parameters), to minimize users' coding efforts and to avoid human errors.
 
 For that purpose, the output python script is designed to be flexible for editing and is equiped with user-friendly variables and comments ready for edit.
 
-The code is consists of (1) Simple JSON to Python converter (`json2py()`), (2) JSON to CSV converter (`json2csv()`), (3) CSV to step dictionary converter (`csv2step()`), (4) step dictionary to Python converter (`step2py()`), (5) comprehensive `liquid_handling()` method (hard-copied to output Python file by `write_liquid_handling()`) and (6) miscellaneous methods and variables.
+The code is consists of (1) Simple JSON to Python converter (`json2py()`), (2) JSON to CSV converter (`json2csv()`), (3) step CSV file to step dictionary converter (`csv2dict()`), (4) step dictionary to Python converter (`dict2py()`), (5) comprehensive `liquid_handling()` method (hard-copied to output Python file by `write_liquid_handling()`) and (6) miscellaneous methods and variables.
 
 ## Data Processing Flow Chart
 <img width="1344" alt="image" src="https://github.com/yusuke-dna/protocol-designer-to-py/assets/70700401/7317b51b-92b9-4ad3-a664-98808e91fc47">
@@ -14,28 +14,28 @@ The code is consists of (1) Simple JSON to Python converter (`json2py()`), (2) J
 1. Design your own protocol using `Opentrons Protocol Designer` and export `JSON file`.
 2. Input `JSON file` to `pdjson2py` with optional parameters via `Opentrons Protocol Library (Web app)` or `Command Line Interface (CLI)`.
 3. In `pdjson2py`, if input file is `JSON file`, go to step 4. If input file is `CSV file`, skip step 4-5 and go to step 6.
-4. In `pdjson2py`, if command mode is not specified, go to step 5-1 (default). If command mode is specified, go to step 5-2.
+4. In `pdjson2py`, if command option is not specified, go to step 5-1 (default). If command option is specified, go to step 5-2.
 5. In `pdjson2py`, 
-    1. `json2csv()` converts `JSON file` to `CSV file`. The CSV file is available from the form link (`Web app`) or generated in the directly (`CLI`). The CSV file name is `[input_file_name].csv`.
+    1. `json2csv()` converts `JSON file` to `CSV file` storing protocol steps. The step CSV file is available from the form link (`Web app`) or generated in the directly (`CLI`). The CSV file name is `[input_file_name].csv`.
     2. `json2py()` converts `JSON file` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `[input_file_name]_command.py`.
-6. In `pdjson2py`, `csv2step()` converts `CSV file` to `step_dict (Python dictionary)`. The `step_dict` is an internal and intermediate data structure.
-7. In `pdjson2py`, `step2py()` converts `step_dict` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `[input_file_name].py`. The user may modify configurations or add logics in the Python script.
+6. In `pdjson2py`, `csv2dict()` converts `CSV file` to `step_dict (Python dictionary)`. The `step_dict` is an internal and intermediate data structure.
+7. In `pdjson2py`, `dict2py()` converts `step_dict` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `[input_file_name].py`. The user may modify configurations or add logics in the Python script.
 8. Run the Python script in `Opentrons App`.
 
 ### CSV file scenario (Edit Existing Protocol)
-1. Design your own protocol by modifying existing `CSV file` (previously generated from `pdjson2py`) or using external CSV source.
+1. Design your own protocol by modifying existing `CSV file` (step file previously generated from `pdjson2py`) or using external step CSV generator.
 2. Input `CSV file` to `pdjson2py` with optional parameters via `Web app` or `CLI`.
 3. In `pdjson2py`, if input file is `CSV file`, skip step 4-5 and go to step 6. ~~If input file is `JSON file`, go to step 4.~~
 4. Skipped
 5. Skipped
-6. In `pdjson2py`, `csv2step()` converts `CSV file` to `step_dict (Python dictionary)`. The `step_dict` is an internal and intermediate data structure.
-7. In `pdjson2py`, `step2py()` converts `CSV file` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `protocol.py`. The user may modify configurations or add logics in the Python script.
+6. In `pdjson2py`, `csv2dict()` converts `CSV file` to `step_dict (Python dictionary)`. The `step_dict` is an internal and intermediate data structure.
+7. In `pdjson2py`, `dict2py()` converts `CSV file` to `Python script`. The Python script is available from the form link (`Web app`) or generated in the directly (`CLI`). The Python script name is `protocol.py`. The user may modify configurations or add logics in the Python script.
 8. Run the Python script in `Opentrons App`.
 
-## Modes
+## Options
 ### Command mode (JSON file input is required)
 The protocol of liquid handling is stored in JSON file in two different ways. Simpler one is in `commands` object. Command mode traces and literally translates commands to Python API step by step. Serial number is marked every 10 commands for readability.
-### Step mode (default, both JSON and CSV file input are available)
+### Default mode, both JSON and CSV file input are available)
 More organized one is in `designerApplication` object, as displayed in Protocol Designer web app. For readability, every step number and step notes are inserted as comments.
 ### Debug mode (both JSON and CSV file input are available)
 Step mode with detailed comments in the generated Python script. It is useful for debugging and understanding the protocol.
@@ -52,7 +52,7 @@ Detail of CSV file is described in lower section.
     - `left` # Starting tip for left pipette (optional, default="A1")
     - `right` # Starting tip for right pipette (optional, default="A1")
     - `webhook_url` # Slack Notification Webhook URL (optional, default=None)
-    - `mode` # Mode selection (optional, default="step", one of ["step", "command", "debug"])
+    - `option` #Logic selection (optional, default=None, one of [None, "command", "debug"])
 - set global variables
     - `tiprack_assign` = used_tiprack_parse(left, right)
 - if primary argument is JSON file:
@@ -77,7 +77,7 @@ Detail of CSV file is described in lower section.
       - `default_blowout_offset` = step_dict['defaultValues']['blowout_offset']
     - `step2py()` to generate Python script, end.
 ## json2py()
-Code block for command mode. `commands` object of JSON file is used to generate python script. The script is not organized and is not recommended for editing.
+A method for command mode. `commands` object of JSON file is used to generate python script. The script is not organized and is not recommended for editing.
 ### Input
 - filename (JSON file)
 - left (optional, default="A1")
@@ -88,20 +88,20 @@ Code block for command mode. `commands` object of JSON file is used to generate 
 ### [Sample Code](./sample-codes.md#json2py)
 
 ## json2csv()
-Code block for converting JSON file to CSV file. The CSV file is designed to be human-readable and editable.
+A method for converting JSON file to CSV file. The CSV file is designed to be human-readable and editable.
 ### Input
 - filename (JSON file)
 - left (optional, default="A1")
 - right (optional, default="A1")
 - webhook_url (optional, default=None)
-- mode (optional, default="step", either "step" or "debug")
+- option (optional, default=None, either None or "debug")
 ### Output
-- CSV file in str, with file name `[filename of json without extension].csv`.
+- CSV file in str, with file name `[filename of json file without extension].csv`.
 ### CSV structure
 See [another file].
 ### [Sample Code](./sample-codes.md#json2csv)
 
-## csv2step()
+## csv2dict()
 Code block for converting CSV file to dict form, similar to command object of JSON file.The Python dictionary is used as an intermediate data structure.
 ### Input
 - filename (CSV file)
@@ -109,16 +109,16 @@ Code block for converting CSV file to dict form, similar to command object of JS
 - step_dict (dict format object)
 ### [Sample Code](./sample-codes.md#csv2step)
 
-## step2py()
+## dict2py()
 Code block for converting CSV file to Python script. The Python script is designed to be human-readable and suitable for used as a template.
 ### Input
 - step_dict (dict format object)
 - left (optional, default="A1")
 - right (optional, default="A1")
 - webhook_url (optional, default=None)
-- mode (optional, default="step", either "step" or "debug")
+- option (optional, default=None, either None or "debug")
 ### Output
-- Python script in str, with file name `[filename of csv without extension].py`.
+- Python script in str, with file name `[filename of csv file without extension].py`.
 ### [Sample Code](./sample-codes.md#step2py)
 
 ## write_header()
@@ -128,11 +128,11 @@ Common script block of protocol.py and protocol_command.py is printed by this me
 - metadata (dict)
 - webhook_url (str)
 ### Output
-- Python script in str, with `output_filename`. Main script block continues by `json2py()` or `step2py` method.
+- Python script in str, with `output_filename`. Main script block continues by `json2py()` or `dict2py` method.
 ### [Sample Code](./sample-codes.md#write_header)
 
 ## write_liquid_handling()
-Comprehensive `liquid_handling()` method is printed by this method. The method is hard-copied to output Python file by `step2py()` method. Command mode does not use it.
+Comprehensive `liquid_handling()` method is printed by this method. The method is hard-copied to output Python file by `dict2py()` method. Command mode does not use it.
 ### Input
 - aspirate_offset (float)
 - dispense_offset (float)
@@ -151,7 +151,7 @@ Convert between "height from top of the well" and "height from bottom of the wel
 Generate dictionary of starting tip well from input string. If input string is missing alphabetic part, calculate it based on numeric part assuming the labware has eight rows. [Sample code here](./sample-codes.md#used_tiprack_parse).
 
 ### sort_wells()
-Wells are sorted based on first_sort and second_sort. [Sample code here](./sample-codes.md#sort_wells).
+Wells (list) are sorted based on first_sort and second_sort. [Sample code here](./sample-codes.md#sort_wells).
 
 # How to use pdjson2py
 The pdjson2py receive JSON file input in two ways.

@@ -58,24 +58,24 @@ Detail of CSV file is described in lower section.
 - if primary argument is JSON file:
     - load JSON file as dict, `pdjson`
     - set global variables
-      - `default_aspirate_offset` = pdjson['designerApplication']['data']['defaultValues']['aspirate_mmFromBottom']
-      - `default_dispense_offset` = pdjson['designerApplication']['data']['defaultValues']['dispense_mmFromBottom']
+      - `default_aspirate_clearance` = pdjson['designerApplication']['data']['defaultValues']['aspirate_mmFromBottom']
+      - `default_dispense_clearance` = pdjson['designerApplication']['data']['defaultValues']['dispense_mmFromBottom']
       - `default_touch_tip_offset` = pdjson['designerApplication']['data']['defaultValues']['touchTip_mmFromTop']
       - `default_blowout_offset` = pdjson['designerApplication']['data']['defaultValues']['blowout_mmFromTop']
     - if mode is "command":
         - `json2py()` to generate Python script, end.
     - else:
         - `json2csv()` to generate intermediate CSV file
-        - `csv2step()` to load CSV file as dict
-        - `step2py()` to generate Python script, end.
+        - `csv2dict()` to load CSV file as dict -> `step_dict`
+        - `dict2py()` to generate Python script, end.
 - else if primary argument is CSV file:
-    - `csv2step()` to load CSV file as dict, `step_dict`
+    - `csv2dict()` to load CSV file as dict -> `step_dict`
     - set global variables
-      - `default_aspirate_offset` = step_dict['defaultValues']['aspirate_offset']
-      - `default_dispense_offset` = step_dict['defaultValues']['dispense_offset']
+      - `default_aspirate_clearance` = step_dict['defaultValues']['aspirate_clearance']
+      - `default_dispense_clearance` = step_dict['defaultValues']['dispense_clearance']
       - `default_touch_tip_offset` = step_dict['defaultValues']['touch_tip_offset']
       - `default_blowout_offset` = step_dict['defaultValues']['blowout_offset']
-    - `step2py()` to generate Python script, end.
+    - `dict2py()` to generate Python script, end.
 ## json2py()
 A method for command mode. `commands` object of JSON file is used to generate python script. The script is not organized and is not recommended for editing.
 ### Input
@@ -106,8 +106,8 @@ Code block for converting CSV file to dict form, similar to command object of JS
 ### Input
 - filename (CSV file)
 ### Output
-- step_dict (dict format object)
-### [Sample Code](./sample-codes.md#csv2step)
+- step_dict (dict format variable)
+### [Sample Code](./sample-codes.md#csv2dict)
 
 ## dict2py()
 Code block for converting CSV file to Python script. The Python script is designed to be human-readable and suitable for used as a template.
@@ -119,7 +119,7 @@ Code block for converting CSV file to Python script. The Python script is design
 - option (optional, default=None, either None or "debug")
 ### Output
 - Python script in str, with file name `[filename of csv file without extension].py`.
-### [Sample Code](./sample-codes.md#step2py)
+### [Sample Code](./sample-codes.md#dict2py)
 
 ## write_header()
 Common script block of protocol.py and protocol_command.py is printed by this method.
@@ -134,11 +134,13 @@ Common script block of protocol.py and protocol_command.py is printed by this me
 ## write_liquid_handling()
 Comprehensive `liquid_handling()` method is printed by this method. The method is hard-copied to output Python file by `dict2py()` method. Command mode does not use it.
 ### Input
-- aspirate_offset (float)
-- dispense_offset (float)
+- output_filename (str)
+- aspirate_clearance (float)
+- dispense_clearance (float)
 - touch_tip_offset (float)
 - blowout_offset (float)
 ### Output
+- Python script in str, with `output_filename`. Main script block continues by `json2py()` or `dict2py` method.
 
 ### [Sample Code](./sample-codes.md#write_liquid_handling)
 
@@ -169,53 +171,43 @@ The pdjson2py receive JSON file input in two ways.
     4. **`url`:** default="", help="Slack Webhook URL here like 'https://hooks.slack.com/services/[YOUR]/[WEBHOOK]/[URL]' to enable notification via Slack.
     5. **`mode`:** default="step", help="Specify 'command' to enable command mode for debugging. 'commands' object is used to generate python script. By default, GUI equivalent steps in 'designerApplication' obejct is used."
 # Supported Protocol Options (Object in JSON file)
-## Default Step Mode (designerApplication/data/savedStepForms/[stepId]/**stepType:_____**)
-### Transfer (stepType:moveLiquid*)
-- passed as argument for `liquid_handling()` method
-  - volume per well
-  - path (single or multiAspirate or multiDispense)
-  - __aspirate_wells_grouped (unclear what is this)__
-  - aspirate_flowRate
-  - aspirate_labware
-  - aspirate_mix_checkbox
-  - aspirate_mix_times
-  - aspirate_mix_volume
-  - aspirate_mmFromBottom
-  - aspirate_touchTip_checkbox
-  - aspirate_touchTip_mmFromBottom
-  - aspirate_touchTip_mmFromBottom
-  - dispense_flowRate
-  - dispense_labware
-  - dispense_mix_checkbox
-  - dispense_mix_times
-  - dispense_mix_volume
-  - dispense_mmFromBottom
-  - dispense_touchTip_checkbox
-  - dispense_touchTip_mmFromBottom
-  - disposalVolume_checkbox
-  - disposalVolume_volume
-  - blowout_checkbox
-  - blowout_location
-  - preWetTip
-  - aspirate_airGap_checkbox
-  - aspirate_airGap_volume
-  - aspirate_delay_checkbox
-  - aspirate_delay_mmFromBottom
-  - aspirate_delay_seconds
-  - dispense_airGap_checkbox
-  - dispense_airGap_volume
-  - dispense_delay_checkbox
-  - dispense_delay_seconds
-  - dispense_delay_mmFromBottom
-- Converted in different way
-  - pipette (specified by UUID, stored in pipettes and left/right infor in  StepForms/__INITIAL_DECK_SETUP_STEP__/pipetteLocationUpdate): extract left or right, and specified as pipette object. (Assume no pipettes exchange happen during protocol.)
-  - changeTip rule: Configured in script block
-  - aspirate_wells/aspirate_wellOrder_first/aspirate_wellOrder_second: Aspilate wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
+## Default Mode (designerApplication/data/savedStepForms/[stepId]/**stepType:_____**)
+### Transfer (stepType:moveLiquid)
+- passed as arguments for `liquid_handling()` method
+  - `volume` (transferring volume per well)
+  - aspirate_flowRate (as `aspirate_flow_rate`)
+  - aspirate_mmFromBottom (as `aspirate_clearance`)
+  - dispense_flowRate (as `dispense_flow_rate`)
+  - `dispense_mmFromBottom` (as `dispense_clearance`)
+  - `blowout_checkbox`
+  - `blowout_location`
+  - `preWetTip` (as `pre_wet_tip`)
+
+- Converted before passed as arguments
+  - pipette: This speifies pipette ID in JSON, that is converted to [pipette object name], by refering `pipette_name[pipette ID]`. `pipette_name:dict` is prepared in initializing step.
+  - changeTip: Literal conversion to argumant `new_tip`. The value is one of 'always', 'once', 'never', 'per_source', 'per_dest' or 'auto'. 'auto' is additional custom tip rule that always change tip unless destination well volume is empty.
+  - path (single or multiAspirate or multiDispense): Literal conversion to argumant `mode` (either 'transfer' or 'consolidate' or 'distribute').
+  - aspirate_labware: This specifies labware ID in JSON, that is converted to [labware object name], by refering `labware_name[labware ID]`. `labware_name:dict` is prepared in initializing step.
+  - aspirate_wells/aspirate_wellOrder_first/aspirate_wellOrder_second: Aspilate wells are sorted in advance accroding to wellOrder_first/second in list format, and passed as argument `aspirate_wells`. (see `sort_wells()` method)
+  - aspirate_mix_checkbox/aspirate_mix_times/aspirate_mix_volume: Passed as arguments `mix_before`=([aspirate_mix_times],[aspirate_mix_volume]), only when `aspirate_mix_checkbox` is True.
+  - aspirate_touchTip_checkbox/aspirate_touchTip_mmFromBottom: Converted by bottom2top and then passed as arguments `aspirate_touch_tip_offset`, only when `aspirate_touchTip_checkbox` is True.
+    - _**Protocol Designer has a bug when labware has multiple depth among wells, such as opentrons_10_tuberack_falcon_4x50ml_6x15ml_conical. No mitigation is implemented in this program.**_
+  - `dispense_labware`
   - dispense_wells/dispense_wellOrder_first/dispense_wellOrder_second: Dispense wells are sorted in advance accroding to wellOrder_first/second in list format, and executed in `liquid_handling()` method.
+  - dispense_mix_checkbox/dispense_mix_times/dispense_mix_volume: Passed as arguments `dispense_mix_times` and `dispense_mix_volume`, only when `dispense_mix_checkbox` is True.
+  - dispense_touchTip_checkbox/dispense_touchTip_mmFromBottom: Converted by bottom2top and then passed as arguments `dispense_touch_tip_offset` to `liquid_handling()` method, only when `dispense_touchTip_checkbox` is True.
+  - disposalVolume_checkbox/disposalVolume_volume: Passed as arguments `disposal_volume`, only when `disposalVolume_checkbox` is True.
+  - aspirate_airGap_checkbox/aspirate_airGap_volume: Passed as arguments `aspirate_air_gap`, only when `aspirate_airGap_checkbox` is True.
+  - aspirate_delay_checkbox/aspirate_delay_seconds/aspirate_delay_mmFromBottom: Passed as arguments `aspirate_delay_seconds` and aspirate_delay_mmFromBottom (as `aspirate_delay_bottom`), only when `aspirate_delay_checkbox` is True.
+  - dispense_airGap_checkbox/dispense_airGap_volume: Passed as arguments `dispense_air_gap`, only when `dispense_airGap_checkbox` is True.
+  - dispense_delay_checkbox/dispense_delay_seconds/dispense_delay_mmFromBottom: Passed as arguments `dispense_delay_seconds` and dispense_delay_mmFromBottom (as `dispense_delay_bottom`), only when `dispense_delay_checkbox` is True.
   - stepName/stepDetails (print right before script step as a comment in format: [stepName]: [stepDetails] )
+
+- Extended functions
+  - `source_volume`
 ### Mix (stepType:mix)
 - passed as arguments for `liquid_handling()` method
-  - times
+  - times (as `repetitions`)
   - labware
   - blowout_checkbox
   - blowout_location
@@ -314,6 +306,6 @@ Extended step type definition to add following features:
 
 
 # Limitation and Future Update
-- Currently, the pipette exchange and module relocation are not supported. The pipette and module is assumed to be fixed during the protocol.
+- Currently, the pipette exchange and module relocation are not supported. The pipette and module is assumed to be fixed throughout the protocol.
 - Liquid level based tip position adjustment is not supported. This feature will be added when liquid volume of the specific labware can be called by API. For now, liquid object is just loaded to protocol but not traced.
 - This program is only for OT-2. Opentrons Flex is not supported.

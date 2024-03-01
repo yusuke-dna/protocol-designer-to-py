@@ -1,7 +1,7 @@
 # How Pipette Works in Transfer/Distribute/Consolidate/Mix method
 All mode (+ reverse mode) shares the same liquid_handling() method.
 ## Sequence
-0. Volume/Offset is inspected
+0. Volume and Clearance is inspected
     1. Carryover cycle is calculated and if necessary the transfer volume is split
     2. If the carryover cycle exceeds max_carryover, the program should raise error.
         1. In mix mode, mix cycle is multiplied to make mixing volume within pipette max_volume. max_carryover is applied to the coefficient of original mix cycle. (if max_carryover is 10 and user specifies 100 µl mix 10 times, with P20 pipette, it is processed as 20 µL mix 50 time and 5x is less than max_carryover)
@@ -95,8 +95,8 @@ All mode (+ reverse mode) shares the same liquid_handling() method.
 #### source_volumes
 #### dest_volumes
 #### mix_volumes
-#### aspirate_offsets
-#### dispense_offsets
+#### aspirate_clearances
+#### dispense_clearances
 ## Requisites of parameters
 ### Pipette:
 - Object
